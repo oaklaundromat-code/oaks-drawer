@@ -23,19 +23,18 @@
   .denom-name { flex: 1; font-size: 15px; color: #1a1a2e; font-weight: 500; }
   .qty-controls { display: flex; align-items: center; gap: 6px; }
   .qty-controls button { width: 30px; height: 30px; border-radius: 8px; border: 1px solid #ddd; background: #f7f7f7; font-size: 18px; color: #333; cursor: pointer; display: flex; align-items: center; justify-content: center; line-height: 1; }
-  .qty-controls button:active { background: #ebebeb; }
   .qty-controls input { width: 52px; height: 30px; border: 1px solid #ddd; border-radius: 8px; text-align: center; font-size: 14px; color: #1a1a2e; }
-  .denom-sub { min-width: 60px; text-align: right; font-size: 13px; color: #888; font-variant-numeric: tabular-nums; }
+  .denom-sub { min-width: 60px; text-align: right; font-size: 13px; color: #888; }
   .total-card { background: #f7f7f5; border-radius: 10px; padding: 1rem 1.25rem; margin: 1.25rem 1.5rem; display: flex; justify-content: space-between; align-items: center; }
   .total-card .lbl { font-size: 12px; color: #888; font-weight: 500; text-transform: uppercase; letter-spacing: 0.06em; }
   .total-card .status { font-size: 13px; margin-top: 4px; font-weight: 500; }
   .status.ok { color: #2d8a4e; }
   .status.low { color: #c0392b; }
   .status.high { color: #e07b00; }
-  .total-amt { font-size: 30px; font-weight: 700; color: #1a1a2e; font-variant-numeric: tabular-nums; letter-spacing: -1px; }
+  .total-amt { font-size: 30px; font-weight: 700; color: #1a1a2e; letter-spacing: -1px; }
+  .low-alert { background: #fdf0f0; border-radius: 8px; padding: 10px 14px; margin: 0 1.5rem 1rem; font-size: 13px; color: #c0392b; font-weight: 500; display: none; }
   .submit-wrap { padding: 0 1.5rem 1.5rem; }
   .submit-btn { width: 100%; padding: 13px; border: none; border-radius: 10px; background: #1a1a2e; color: #fff; font-size: 15px; font-weight: 600; cursor: pointer; }
-  .submit-btn:active { opacity: 0.88; }
   .submit-btn:disabled { background: #aaa; cursor: not-allowed; }
   .toast { display: none; margin: 0 1.5rem 1.5rem; padding: 12px 14px; border-radius: 8px; font-size: 14px; font-weight: 500; }
   .toast.success { background: #eafaf1; color: #1e7e45; display: block; }
@@ -58,190 +57,51 @@
       <option value="">Select employee</option>
       <option>Cinthia</option>
       <option>Bryan</option>
-      <option>Ramero</option>
-     <option>Maria</option>
+      <option>Romero</option>
       <option>Manager</option>
       <option>New Hire</option>
     </select>
   </div>
-  <div class="section">
-    <div class="section-label">Bills</div>
-    <div id="bills"></div>
-  </div>
-  <div class="section">
-    <div class="section-label">Coins</div>
-    <div id="coins"></div>
-  </div>
+  <div class="section"><div class="section-label">Bills</div><div id="bills"></div></div>
+  <div class="section"><div class="section-label">Coins</div><div id="coins"></div></div>
+  <div class="low-alert" id="lowAlert"></div>
   <div class="total-card">
-    <div>
-      <div class="lbl">Total</div>
-      <div class="status" id="status">—</div>
-    </div>
+    <div><div class="lbl">Total</div><div class="status" id="status">—</div></div>
     <div class="total-amt" id="total">$0.00</div>
   </div>
-  <div class="submit-wrap">
-    <button class="submit-btn" onclick="submitCount()">Submit count</button>
-  </div>
+  <div class="submit-wrap"><button class="submit-btn" onclick="submitCount()">Submit count</button></div>
   <div class="toast" id="toast"></div>
 </div>
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 <script>
-  var EMAILJS_PUBLIC_KEY  = 'ndWWB1hJwPp1a_UvF';
-  var EMAILJS_SERVICE_ID  = 'service_vt5n8lc';
-  var EMAILJS_TEMPLATE_ID = 'template_m2zbjc3';
-  var OWNER_EMAIL         = 'oaklaundromat@gmail.com';
-  var APPROVED_BANK       = 400.00;
-  var ALERT_OVER          = 100;
-  var GOOGLE_SHEET_URL    = 'https://script.google.com/macros/s/AKfycbyiauTAC7ayYeNSAGdpIeWB7G_Uc9Z-1dC4Pw0IWxgiz-1BuDa9M7R9hOM5Q60bgvW6/exec';
-
+  var EMAILJS_PUBLIC_KEY='ndWWB1hJwPp1a_UvF';
+  var EMAILJS_SERVICE_ID='service_vt5n8lc';
+  var EMAILJS_TEMPLATE_ID='template_m2zbjc3';
+  var OWNER_EMAIL='oaklaundromat@gmail.com';
+  var APPROVED_BANK=400;
+  var ALERT_OVER=100;
+  var GOOGLE_SHEET_URL='https://script.google.com/macros/s/AKfycbyiauTAC7ayYeNSAGdpIeWB7G_Uc9Z-1dC4Pw0IWxgiz-1BuDa9M7R9hOM5Q60bgvW6/exec';
+  var LOW_THRESHOLDS={
+    'd_1bills':{min:25,label:'$1 bills'},
+    'd_5bills':{min:8,label:'$5 bills'},
+    'd_Quarters':{min:20,label:'Quarters (less than $5)'},
+    'd_Dimes':{min:20,label:'Dimes (less than $2)'},
+    'd_Nickels':{min:40,label:'Nickels (less than $2)'},
+    'd_Pennies':{min:100,label:'Pennies (less than $1)'}
+  };
   emailjs.init(EMAILJS_PUBLIC_KEY);
-  var currentShift = 'Morning';
-
-  var bills = [
-    {label:'$100 bills', val:100},
-    {label:'$50 bills',  val:50},
-    {label:'$20 bills',  val:20},
-    {label:'$10 bills',  val:10},
-    {label:'$5 bills',   val:5},
-    {label:'$1 bills',   val:1}
-  ];
-  var coins = [
-    {label:'Quarters', val:0.25},
-    {label:'Dimes',    val:0.10},
-    {label:'Nickels',  val:0.05},
-    {label:'Pennies',  val:0.01}
-  ];
-
-  function buildRows(items, containerId) {
-    var c = document.getElementById(containerId);
-    for (var i = 0; i < items.length; i++) {
-      var item = items[i];
-      var id = 'd_' + item.label.replace(/\W/g,'');
-      var row = document.createElement('div');
-      row.className = 'denom-row';
-      row.innerHTML = '<div class="denom-name">' + item.label + '</div><div class="qty-controls"><button type="button" onclick="adj(\'' + id + '\',-1)">−</button><input type="number" id="' + id + '" value="0" min="0" data-val="' + item.val + '" oninput="calc()"><button type="button" onclick="adj(\'' + id + '\',1)">+</button></div><div class="denom-sub" id="sub_' + id + '">$0.00</div>';
-      c.appendChild(row);
-    }
-  }
-  buildRows(bills, 'bills');
-  buildRows(coins, 'coins');
-
-  function setShift(btn, name) {
-    var btns = document.querySelectorAll('.shift-bar button');
-    for (var i = 0; i < btns.length; i++) btns[i].classList.remove('active');
-    btn.classList.add('active');
-    currentShift = name;
-  }
-
-  function adj(id, d) {
-    var el = document.getElementById(id);
-    el.value = Math.max(0, (parseInt(el.value) || 0) + d);
-    calc();
-  }
-
-  function calc() {
-    var total = 0;
-    var els = document.querySelectorAll('[data-val]');
-    for (var i = 0; i < els.length; i++) {
-      var el = els[i];
-      var qty = parseInt(el.value) || 0;
-      var val = parseFloat(el.dataset.val);
-      var sub = qty * val;
-      total += sub;
-      document.getElementById('sub_' + el.id).textContent = '$' + sub.toFixed(2);
-    }
-    var rounded = Math.round(total * 100) / 100;
-    document.getElementById('total').textContent = '$' + rounded.toFixed(2);
-    var diff = Math.round((rounded - APPROVED_BANK) * 100) / 100;
-    var statusEl = document.getElementById('status');
-    if (rounded < APPROVED_BANK) {
-      statusEl.textContent = '$' + Math.abs(diff).toFixed(2) + ' short — needs attention';
-      statusEl.className = 'status low';
-    } else if (diff >= ALERT_OVER) {
-      statusEl.textContent = '+$' + diff.toFixed(2) + ' over — pull cash';
-      statusEl.className = 'status high';
-    } else {
-      statusEl.textContent = 'Balanced (approved $' + APPROVED_BANK.toFixed(2) + ')';
-      statusEl.className = 'status ok';
-    }
-    return { total: rounded, diff: diff };
-  }
-
-  function submitCount() {
-    var emp = document.getElementById('emp').value;
-    if (!emp) { showToast('Please select an employee.', 'error'); return; }
-    var result = calc();
-    var total = result.total;
-    var diff = result.diff;
-    var needsAlert = total < APPROVED_BANK || diff >= ALERT_OVER;
-    var now = new Date();
-    var dateStr = now.toLocaleDateString('en-US', {month:'2-digit', day:'2-digit', year:'numeric'});
-    var timeStr = now.toLocaleTimeString('en-US', {hour:'2-digit', minute:'2-digit'});
-    var datetime = dateStr + ' ' + timeStr;
-    var statusText = '';
-    if (total < APPROVED_BANK) {
-      statusText = 'SHORT — $' + Math.abs(diff).toFixed(2) + ' under approved bank';
-    } else if (diff >= ALERT_OVER) {
-      statusText = 'OVER — +$' + diff.toFixed(2) + ' above approved bank — consider cash withdrawal';
-    } else {
-      statusText = 'BALANCED';
-    }
-    var denomData = {};
-    var lines = [];
-    var allItems = bills.concat(coins);
-    for (var i = 0; i < allItems.length; i++) {
-      var item = allItems[i];
-      var id = 'd_' + item.label.replace(/\W/g,'');
-      var qty = parseInt(document.getElementById(id).value) || 0;
-      denomData[item.label] = qty;
-      if (qty > 0) lines.push(item.label + ' x ' + qty + ' = $' + (qty * item.val).toFixed(2));
-    }
-    var btn = document.querySelector('.submit-btn');
-    btn.disabled = true;
-    btn.textContent = 'Submitting…';
-    var sheetData = {
-      date: dateStr, time: timeStr, employee: emp, shift: currentShift,
-      total: total.toFixed(2), status: statusText,
-      hundreds: denomData['$100 bills'] || 0, fifties: denomData['$50 bills'] || 0,
-      twenties: denomData['$20 bills'] || 0, tens: denomData['$10 bills'] || 0,
-      fives: denomData['$5 bills'] || 0, ones: denomData['$1 bills'] || 0,
-      quarters: denomData['Quarters'] || 0, dimes: denomData['Dimes'] || 0,
-      nickels: denomData['Nickels'] || 0, pennies: denomData['Pennies'] || 0
-    };
-    var sheetPromise = fetch(GOOGLE_SHEET_URL, {
-      method: 'POST', mode: 'no-cors',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify(sheetData)
-    });
-    var emailPromise = needsAlert
-      ? emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
-          to_email: OWNER_EMAIL,
-          subject: 'Drawer Alert — ' + currentShift + ' shift — ' + emp + ' — ' + datetime,
-          employee: emp, shift: currentShift, timestamp: datetime,
-          total: '$' + total.toFixed(2), approved: '$' + APPROVED_BANK.toFixed(2),
-          difference: statusText, breakdown: lines.join('\n') || '(none)'
-        })
-      : Promise.resolve();
-    Promise.all([sheetPromise, emailPromise])
-      .then(function() {
-        showToast(needsAlert ? 'Count submitted — owner alerted.' : 'Count submitted', needsAlert ? 'error' : 'success');
-        btn.textContent = 'Submitted';
-      })
-      .catch(function(err) {
-        console.error(err);
-        showToast('Submission error — check setup.', 'error');
-        btn.disabled = false;
-        btn.textContent = 'Submit count';
-      });
-  }
-
-  function showToast(msg, type) {
-    var t = document.getElementById('toast');
-    t.textContent = msg;
-    t.className = 'toast ' + type;
-  }
+  var currentShift='Morning';
+  var bills=[{label:'$100 bills',val:100},{label:'$50 bills',val:50},{label:'$20 bills',val:20},{label:'$10 bills',val:10},{label:'$5 bills',val:5},{label:'$1 bills',val:1}];
+  var coins=[{label:'Quarters',val:0.25},{label:'Dimes',val:0.10},{label:'Nickels',val:0.05},{label:'Pennies',val:0.01}];
+  function buildRows(items,cid){var c=document.getElementById(cid);for(var i=0;i<items.length;i++){var item=items[i];var id='d_'+item.label.replace(/\W/g,'');var row=document.createElement('div');row.className='denom-row';row.innerHTML='<div class="denom-name">'+item.label+'</div><div class="qty-controls"><button type="button" onclick="adj(\''+id+'\',-1)">−</button><input type="number" id="'+id+'" value="0" min="0" data-val="'+item.val+'" oninput="calc()"><button type="button" onclick="adj(\''+id+'\',1)">+</button></div><div class="denom-sub" id="sub_'+id+'">$0.00</div>';c.appendChild(row);}}
+  buildRows(bills,'bills');buildRows(coins,'coins');
+  function setShift(btn,name){var b=document.querySelectorAll('.shift-bar button');for(var i=0;i<b.length;i++)b[i].classList.remove('active');btn.classList.add('active');currentShift=name;}
+  function adj(id,d){var el=document.getElementById(id);el.value=Math.max(0,(parseInt(el.value)||0)+d);calc();}
+  function checkLowDenoms(){var warnings=[];var keys=Object.keys(LOW_THRESHOLDS);for(var i=0;i<keys.length;i++){var k=keys[i];var el=document.getElementById(k);if(!el)continue;var qty=parseInt(el.value)||0;if(qty<LOW_THRESHOLDS[k].min){warnings.push(LOW_THRESHOLDS[k].label+': '+qty+' (need '+LOW_THRESHOLDS[k].min+')');}}var alertEl=document.getElementById('lowAlert');if(warnings.length>0){alertEl.innerHTML='Low denomination alert:<br>'+warnings.join('<br>');alertEl.style.display='block';}else{alertEl.style.display='none';}return warnings;}
+  function calc(){var total=0;var els=document.querySelectorAll('[data-val]');for(var i=0;i<els.length;i++){var el=els[i];var qty=parseInt(el.value)||0;var val=parseFloat(el.dataset.val);var sub=qty*val;total+=sub;document.getElementById('sub_'+el.id).textContent='$'+sub.toFixed(2);}var rounded=Math.round(total*100)/100;document.getElementById('total').textContent='$'+rounded.toFixed(2);var diff=Math.round((rounded-APPROVED_BANK)*100)/100;var s=document.getElementById('status');if(rounded<APPROVED_BANK){s.textContent='$'+Math.abs(diff).toFixed(2)+' short';s.className='status low';}else if(diff>=ALERT_OVER){s.textContent='+$'+diff.toFixed(2)+' over — pull cash';s.className='status high';}else{s.textContent='Balanced (approved $'+APPROVED_BANK.toFixed(2)+')';s.className='status ok';}checkLowDenoms();return{total:rounded,diff:diff};}
+  function submitCount(){var emp=document.getElementById('emp').value;if(!emp){showToast('Please select an employee.','error');return;}var result=calc();var total=result.total;var diff=result.diff;var lowWarnings=checkLowDenoms();var needsAlert=total<APPROVED_BANK||diff>=ALERT_OVER||lowWarnings.length>0;var now=new Date();var dateStr=now.toLocaleDateString('en-US',{month:'2-digit',day:'2-digit',year:'numeric'});var timeStr=now.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});var datetime=dateStr+' '+timeStr;var statusText='';if(total<APPROVED_BANK){statusText='SHORT — $'+Math.abs(diff).toFixed(2)+' under';}else if(diff>=ALERT_OVER){statusText='OVER — +$'+diff.toFixed(2)+' above — pull cash';}else{statusText='BALANCED';}var denomData={};var lines=[];var allItems=bills.concat(coins);for(var i=0;i<allItems.length;i++){var item=allItems[i];var id='d_'+item.label.replace(/\W/g,'');var qty=parseInt(document.getElementById(id).value)||0;denomData[item.label]=qty;if(qty>0)lines.push(item.label+' x '+qty+' = $'+(qty*item.val).toFixed(2));}var btn=document.querySelector('.submit-btn');btn.disabled=true;btn.textContent='Submitting…';var sheetData={date:dateStr,time:timeStr,employee:emp,shift:currentShift,total:total.toFixed(2),status:statusText,hundreds:denomData['$100 bills']||0,fifties:denomData['$50 bills']||0,twenties:denomData['$20 bills']||0,tens:denomData['$10 bills']||0,fives:denomData['$5 bills']||0,ones:denomData['$1 bills']||0,quarters:denomData['Quarters']||0,dimes:denomData['Dimes']||0,nickels:denomData['Nickels']||0,pennies:denomData['Pennies']||0};var sheetPromise=fetch(GOOGLE_SHEET_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify(sheetData)});var emailBody=lines.join('\n')+'\n\nTotal: $'+total.toFixed(2)+'\nStatus: '+statusText;if(lowWarnings.length>0){emailBody+='\n\nLOW DENOMINATION ALERT:\n'+lowWarnings.join('\n');}var emailSubject=(lowWarnings.length>0?'Low Change Alert':'Drawer Alert')+' — '+currentShift+' — '+emp+' — '+datetime;var emailPromise=needsAlert?emailjs.send(EMAILJS_SERVICE_ID,EMAILJS_TEMPLATE_ID,{to_email:OWNER_EMAIL,subject:emailSubject,employee:emp,shift:currentShift,timestamp:datetime,total:'$'+total.toFixed(2),approved:'$'+APPROVED_BANK.toFixed(2),difference:statusText,breakdown:emailBody}):Promise.resolve();Promise.all([sheetPromise,emailPromise]).then(function(){showToast(needsAlert?'Count submitted — owner alerted.':'Count submitted','success');btn.textContent='Submitted';}).catch(function(err){console.error(err);showToast('Submission error.','error');btn.disabled=false;btn.textContent='Submit count';});}
+  function showToast(msg,type){var t=document.getElementById('toast');t.textContent=msg;t.className='toast '+type;}
 </script>
 </body>
 </html>
-
 

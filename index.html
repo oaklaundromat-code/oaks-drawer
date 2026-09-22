@@ -213,7 +213,8 @@
       if(qty<LOW_THRESHOLDS[k].min)warnings.push(LOW_THRESHOLDS[k].label+': '+qty+' (need '+LOW_THRESHOLDS[k].min+')');
     }
     var a=document.getElementById('lowAlert');
-    if(warnings.length){a.innerHTML='Low change:<br>'+warnings.join('<br>');a.style.display='block';}else{a.style.display='none';}
+    var counted=0;var dEls=document.querySelectorAll('[data-val]');for(var j=0;j<dEls.length;j++)counted+=parseInt(dEls[j].value)||0;
+    if(warnings.length&&counted>0){a.innerHTML='Running low on change — get more of these from the bank:<br>'+warnings.join('<br>');a.style.display='block';}else{a.style.display='none';}
     return warnings;
   }
 

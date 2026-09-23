@@ -147,7 +147,7 @@
   var EMAILJS_TEMPLATE_ID='template_m2zbjc3';
   var OWNER_EMAIL='oaklaundromat@gmail.com';
   var APPROVED_BANK=400;
-  var OWNER_WITHDRAWAL_ALERT=100;  // on-screen notice when this far over the bank; emailed once when first crossed
+  var OWNER_WITHDRAWAL_ALERT=100;
   var TOLERANCE=1.00;
   var GOOGLE_SHEET_URL='https://script.google.com/macros/s/AKfycbyiauTAC7ayYeNSAGdpIeWB7G_Uc9Z-1dC4Pw0IWxgiz-1BuDa9M7R9hOM5Q60bgvW6/exec';
 
@@ -214,8 +214,8 @@
     return warnings;
   }
 
-  var connStatus='loading';   // 'ok' | 'empty' | 'error'
-  var book=null;              // last count, today's opening count, last night's close
+  var connStatus='loading';
+  var book=null;
 
   function normTime(x){
     var s=String(x||'');
@@ -223,7 +223,11 @@
     var d=new Date(s);
     return isNaN(d)?s:d.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
   }
-  function shortDate(key){            // yyyy-mm-dd -> Sep 22
+  function shortDate(key){
+    if(/^\d{1,2}\/\d{1,2}\/\d{4}$/.test(String(key||''))){
+      var m=key.split('/');
+      return new Date(Number(m[2]),Number(m[0])-1,Number(m[1])).toLocaleDateString('en-US',{month:'short',day:'numeric'});
+    }
     var p=String(key||'').split('-');
     if(p.length!==3)return String(key||'');
     return new Date(p[0],p[1]-1,p[2]).toLocaleDateString('en-US',{month:'short',day:'numeric'});
@@ -234,12 +238,15 @@
   }
 
   function loadBook(){
-    var timeout=new Promise(function(res){setTimeout(function(){res('TIMEOUT');},6000);});
-    var req=fetch(GOOGLE_SHEET_URL).then(function(r){return r.json();}).catch(function(){return 'ERROR';});
+    var timeout=new Promise(function(res){setTimeout(function(){res('TIMEOUT');},60000);});
+    var req=fetch(GOOGLE_SHEET_URL+'?t='+Date.now(),{cache:'no-store'}).then(function(r){return r.json();}).catch(function(){return 'ERROR';});
     return Promise.race([req,timeout]).then(function(p){
-      if(p==='TIMEOUT'||p==='ERROR'||p===null||typeof p!=='object'){connStatus='error';book=null;return null;}
+      if(p==='TIMEOUT'||p==='ERROR'||p===null||typeof p!=='object'||p.success===false){connStatus='error';book=null;return null;}
       if(!p.last){connStatus='empty';book=null;return null;}
       connStatus='ok';
+      p.wdSinceLast=Number(p.last.withdrawalsSinceCount||0);
+      p.wdSinceTodayOpen=p.todayOpen&&p.todayOpen.submissionId===p.last.submissionId
+        ?p.wdSinceLast:Number(p.wdSinceTodayOpen||0);
       if(p.last)p.last.time=normTime(p.last.time);
       if(p.todayOpen)p.todayOpen.time=normTime(p.todayOpen.time);
       if(p.prevClose)p.prevClose.time=normTime(p.prevClose.time);
@@ -247,7 +254,6 @@
     });
   }
 
-  // This count opens the day if nothing has been counted today yet
   function isOpening(){return !book||!book.todayOpen;}
   function anchor(){return book?(book.todayOpen||book.prevClose||book.last):null;}
   function wdSinceAnchor(){return book?(book.todayOpen?Number(book.wdSinceTodayOpen||0):Number(book.wdSinceLast||0)):0;}
@@ -279,8 +285,6 @@
     return nowOver&&!wasOver;
   }
 
-  // Everything is measured against today's opening count plus the day's running sales,
-  // so one bad entry mid-day can't throw off every count after it.
   function evaluate(total){
     var sales=numVal('sales');
     var takingOver=document.getElementById('takingOver').value;
@@ -338,7 +342,6 @@
     else if(bankDiff>0){s.textContent='+'+money(bankDiff)+' above bank';s.className='status ok';}
     else{s.textContent='Balanced — $'+APPROVED_BANK.toFixed(2);s.className='status ok';}
 
-    // On-screen only. The amount box is never filled in automatically.
     var oa=document.getElementById('ownerAlert');var hint=document.getElementById('withdrawHint');
     if(bankDiff>=OWNER_WITHDRAWAL_ALERT){
       oa.innerHTML='Drawer is <b>$'+bankDiff.toFixed(2)+'</b> above the $'+APPROVED_BANK.toFixed(2)+' bank — ready for an owner withdrawal.';
@@ -365,7 +368,26 @@
   }
 
   function post(data){
-    return fetch(GOOGLE_SHEET_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});
+    return fetch(GOOGLE_SHEET_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(data)});
+  }
+
+  function confirmCount(id){
+    var delays=[0,1200,2400,4000,6000];
+    function attempt(i){
+      return new Promise(function(resolve){setTimeout(resolve,delays[i]);}).then(function(){
+        return fetch(GOOGLE_SHEET_URL+'?check='+encodeURIComponent(id)+'&t='+Date.now(),{cache:'no-store'})
+          .then(function(r){if(!r.ok)throw new Error('Ledger unavailable');return r.json();})
+          .then(function(p){
+            if(p.success===false)throw new Error(p.error||'Ledger error');
+            return p.last&&p.last.submissionId===id?p.last:null;
+          }).catch(function(){return null;});
+      }).then(function(saved){
+        if(saved)return saved;
+        if(i+1<delays.length)return attempt(i+1);
+        throw new Error('Submission not confirmed in the sheet');
+      });
+    }
+    return attempt(0);
   }
 
   function stopSubmit(btn,msg,focusId){
@@ -377,8 +399,9 @@
     var employee=document.getElementById('emp').value;
     if(!employee){showToast('Please select who is counting.','error');return;}
     var btn=document.getElementById('countBtn');btn.disabled=true;btn.textContent='Checking…';
+    var currentSubmissionId='';
 
-    loadBook().then(function(bk){
+    loadBook().then(function(){
       renderPrev();
       var total=calc().total;
       var ev=evaluate(total);
@@ -394,6 +417,7 @@
       var date=todayStr();
       var time=new Date().toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});
       var id=makeId('CD');
+      currentSubmissionId=id;
       var takingOver=document.getElementById('takingOver').value;
       var agreed=document.getElementById('agreed').checked;
       var w=wdSinceAnchor();
@@ -421,7 +445,6 @@
         carts:document.getElementById('carts').value,takingOver:takingOver,agreed:(takingOver?(agreed?'Yes':'No'):''),note:note
       });
 
-      // Emails: discrepancies, short drawer, low change, and the first time the drawer goes $100+ over.
       var needsAlert=total<APPROVED_BANK||lowWarnings.length>0||ev.alertOwner||crossedOver;
 
       var body='';
@@ -446,16 +469,23 @@
       var tag=ev.issues.length?ev.issues[0].split(' ').slice(0,2).join(' ')
         :(total<APPROVED_BANK?'Drawer Short':(crossedOver?'Drawer $100+ Over Bank':'Low Change'));
 
-      var emailPromise=needsAlert?emailjs.send(EMAILJS_SERVICE_ID,EMAILJS_TEMPLATE_ID,{
+      var sendAlert=function(){return needsAlert?emailjs.send(EMAILJS_SERVICE_ID,EMAILJS_TEMPLATE_ID,{
         to_email:OWNER_EMAIL,subject:tag+' — '+employee+' — '+new Date().toLocaleDateString('en-US',{month:'short',day:'numeric'})+' '+time,employee:employee,shift:currentShift,
         timestamp:date+' '+time,total:'$'+total.toFixed(2),approved:'$'+APPROVED_BANK.toFixed(2),difference:statusText,breakdown:body
-      }):Promise.resolve();
+      }):Promise.resolve();};
 
-      return Promise.all([sheetPromise,emailPromise]).then(function(){
-        showToast('Count submitted — '+id,'success');btn.textContent='Submitted';
+      return sheetPromise.then(function(){return confirmCount(id);}).then(function(){
+        showToast('Count saved in the sheet — '+id,'success');btn.textContent='Saved';
+        return sendAlert().catch(function(err){
+          console.error('Alert email failed',err);
+          showToast('Count saved in the sheet — '+id+'. Alert email failed.','success');
+        });
       });
     }).catch(function(err){
-      console.error(err);showToast('Submission error.','error');btn.disabled=false;btn.textContent='Submit drawer count';
+      console.error(err);
+      showToast('Count NOT confirmed in the sheet. Keep the count and tell the owner. ID: '+(currentSubmissionId||'unknown'),'error');
+      btn.disabled=false;
+      btn.textContent='Submit drawer count';
     });
   }
 
@@ -484,7 +514,6 @@
         relatedCountId:last.submissionId||'',priorCountTotal:Number(last.total),priorWithdrawals:priorW,availableAboveBank:available
       });
 
-      // Every withdrawal is emailed, so one that wasn't you is caught within minutes
       var emailPromise=emailjs.send(EMAILJS_SERVICE_ID,EMAILJS_TEMPLATE_ID,{
         to_email:OWNER_EMAIL,subject:'Owner Withdrawal $'+amount.toFixed(2)+' — '+owner+' — '+date+' '+time,
         employee:owner,shift:'Owner Withdrawal',timestamp:date+' '+time,total:'$'+amount.toFixed(2),approved:'$'+APPROVED_BANK.toFixed(2),

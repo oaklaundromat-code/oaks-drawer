@@ -1,3 +1,6 @@
+All three states behave: hidden on a normal opening count, normal on later counts, and **"Start of day — nobody here yet"** appears only when the sheet can't be read. Picking it skips the confirmation and logs a blank handoff.
+
+```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -174,6 +177,7 @@
   }
   fillSelect('emp','Select employee',STAFF);
   fillSelect('takingOver','End of day — nobody taking over',STAFF);
+  var START_OF_DAY='Start of day — nobody here yet';
   fillSelect('withdrawOwner','Select owner',OWNERS);
 
   function buildRows(items,cid){
@@ -318,7 +322,7 @@
       }
     }
     // No handoff on the first count of the day — nobody is there to confirm
-    if(!isOpening()&&takingOver&&!agreed){r.issues.push('NEXT PERSON DID NOT CONFIRM');r.needsNote=true;r.alertOwner=true;}
+    if(!isOpening()&&takingOver&&takingOver!==START_OF_DAY&&!agreed){r.issues.push('NEXT PERSON DID NOT CONFIRM');r.needsNote=true;r.alertOwner=true;}
     return r;
   }
 
@@ -347,11 +351,21 @@
       hint.textContent='Record this only after an owner physically removes cash.';
     }
 
-    // Hide the handoff question entirely on the first count of the day
-    var op=isOpening();
+    // Hide the handoff question on the first count of the day.
+    // If the sheet couldn't be read we can't tell, so offer "Start of day" instead.
     var toEl=document.getElementById('takingOver');
-    document.getElementById('takingOverField').style.display=op?'none':'block';
-    if(op)toEl.value='';
+    var unknown=(connStatus==='error');
+    var hasStart=toEl.options.length&&toEl.options[1]&&toEl.options[1].value===START_OF_DAY;
+    if(unknown&&!hasStart){
+      var o=document.createElement('option');o.text=START_OF_DAY;o.value=START_OF_DAY;
+      toEl.add(o,toEl.options[1]||null);
+    }else if(!unknown&&hasStart){
+      if(toEl.value===START_OF_DAY)toEl.value='';
+      toEl.remove(1);
+    }
+    var op=unknown?(toEl.value===START_OF_DAY):isOpening();
+    document.getElementById('takingOverField').style.display=(unknown||!isOpening())?'block':'none';
+    if(!unknown&&isOpening())toEl.value='';
     document.getElementById('agreeWrap').style.display=(!op&&toEl.value)?'flex':'none';
 
     var ev=evaluate(total);
@@ -432,7 +446,8 @@
       var time=new Date().toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});
       var id=makeId('CD');
       currentSubmissionId=id;
-      var takingOver=isOpening()?'':document.getElementById('takingOver').value;
+      var toVal=document.getElementById('takingOver').value;
+      var takingOver=(isOpening()||toVal===START_OF_DAY)?'':toVal;
       var agreed=document.getElementById('agreed').checked;
       var w=wdSinceAnchor();
       var crossedOver=firstTimeOver(total);
@@ -558,3 +573,4 @@
 </script>
 </body>
 </html>
+```

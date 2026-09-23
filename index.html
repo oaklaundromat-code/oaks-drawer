@@ -74,7 +74,7 @@
       <label for="emp">Counting employee</label>
       <select id="emp"></select>
     </div>
-    <div class="field">
+    <div class="field" id="takingOverField">
       <label for="takingOver">Taking over the drawer</label>
       <select id="takingOver" onchange="calc()"></select>
     </div>
@@ -268,7 +268,7 @@
     h+='Last count: <b>$'+book.last.total.toFixed(2)+'</b> — '+book.last.employee+', '+book.last.shift+', '+book.last.time;
     var w=wdSinceAnchor();
     if(w>0)h+='<br>Owner withdrawals since'+(book.todayOpen?' open':' then')+': <b>$'+w.toFixed(2)+'</b>';
-    if(isOpening())h+='<br>First count of the day.';
+    if(isOpening())h+='<br>First count of the day — no handoff needed.';
     b.innerHTML=h;
   }
 
@@ -317,7 +317,8 @@
         }
       }
     }
-    if(takingOver&&!agreed){r.issues.push('NEXT PERSON DID NOT CONFIRM');r.needsNote=true;r.alertOwner=true;}
+    // No handoff on the first count of the day — nobody is there to confirm
+    if(!isOpening()&&takingOver&&!agreed){r.issues.push('NEXT PERSON DID NOT CONFIRM');r.needsNote=true;r.alertOwner=true;}
     return r;
   }
 
@@ -346,7 +347,13 @@
       hint.textContent='Record this only after an owner physically removes cash.';
     }
 
-    document.getElementById('agreeWrap').style.display=document.getElementById('takingOver').value?'flex':'none';
+    // Hide the handoff question entirely on the first count of the day
+    var op=isOpening();
+    var toEl=document.getElementById('takingOver');
+    document.getElementById('takingOverField').style.display=op?'none':'block';
+    if(op)toEl.value='';
+    document.getElementById('agreeWrap').style.display=(!op&&toEl.value)?'flex':'none';
+
     var ev=evaluate(total);
     var ex=document.getElementById('expected');
     ex.textContent=ev.expectedText;ex.className='expected '+ev.expectedClass;ex.style.display=ev.expectedText?'block':'none';
@@ -425,7 +432,7 @@
       var time=new Date().toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});
       var id=makeId('CD');
       currentSubmissionId=id;
-      var takingOver=document.getElementById('takingOver').value;
+      var takingOver=isOpening()?'':document.getElementById('takingOver').value;
       var agreed=document.getElementById('agreed').checked;
       var w=wdSinceAnchor();
       var crossedOver=firstTimeOver(total);

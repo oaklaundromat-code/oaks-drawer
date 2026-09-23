@@ -120,7 +120,6 @@
 
   <div class="submit-wrap"><button class="submit-btn" id="countBtn" onclick="submitCount()">Submit drawer count</button></div>
 
-  <!-- OWNER WITHDRAWAL — separate event, recorded at the moment cash is taken -->
   <div class="section withdraw-box">
     <div class="section-label">Owner withdrawal</div>
     <div class="row2">
@@ -232,10 +231,6 @@
     if(p.length!==3)return String(key||'');
     return new Date(p[0],p[1]-1,p[2]).toLocaleDateString('en-US',{month:'short',day:'numeric'});
   }
-  function todayKey(){
-    var d=new Date();
-    return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
-  }
 
   function loadBook(){
     var timeout=new Promise(function(res){setTimeout(function(){res('TIMEOUT');},60000);});
@@ -255,7 +250,6 @@
   }
 
   function isOpening(){return !book||!book.todayOpen;}
-  function anchor(){return book?(book.todayOpen||book.prevClose||book.last):null;}
   function wdSinceAnchor(){return book?(book.todayOpen?Number(book.wdSinceTodayOpen||0):Number(book.wdSinceLast||0)):0;}
 
   function renderPrev(){
@@ -368,7 +362,20 @@
   }
 
   function post(data){
-    return fetch(GOOGLE_SHEET_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(data)});
+    return fetch(GOOGLE_SHEET_URL,{
+      method:'POST',
+      headers:{'Content-Type':'text/plain;charset=utf-8'},
+      body:JSON.stringify(data)
+    })
+    .then(function(r){
+      if(!r.ok)throw new Error('Script returned HTTP '+r.status);
+      return r.json();
+    })
+    .then(function(result){
+      if(!result.success)throw new Error(result.error||'Script rejected the submission');
+      if(result.submissionId!==data.submissionId)throw new Error('Script returned the wrong submission ID');
+      return result;
+    });
   }
 
   function confirmCount(id){
@@ -483,7 +490,7 @@
       });
     }).catch(function(err){
       console.error(err);
-      showToast('Count NOT confirmed in the sheet. Keep the count and tell the owner. ID: '+(currentSubmissionId||'unknown'),'error');
+      showToast('Count NOT saved: '+(err&&err.message||'Unknown error')+'. Keep the count and tell the owner. ID: '+(currentSubmissionId||'unknown'),'error');
       btn.disabled=false;
       btn.textContent='Submit drawer count';
     });

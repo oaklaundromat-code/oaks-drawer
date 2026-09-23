@@ -165,7 +165,6 @@
 
   emailjs.init(EMAILJS_PUBLIC_KEY);
   var currentShift='Morning';
-  var prevCount=null;
   var bills=[{label:'$100 bills',val:100},{label:'$50 bills',val:50},{label:'$20 bills',val:20},{label:'$10 bills',val:10},{label:'$5 bills',val:5},{label:'$1 bills',val:1}];
   var coins=[{label:'Quarters',val:0.25},{label:'Dimes',val:0.10},{label:'Nickels',val:0.05},{label:'Pennies',val:0.01}];
 
@@ -200,10 +199,6 @@
   function signed(n){return (n>=0?'+':'-')+money(n);}
   function todayStr(){return new Date().toLocaleDateString('en-US',{month:'2-digit',day:'2-digit',year:'numeric'});}
   function numVal(id){var v=document.getElementById(id).value;return v===''?null:(parseFloat(v)||0);}
-  function wdSince(){return prevCount?Number(prevCount.withdrawalsSinceCount||0):0;}
-  // Cleantie gives a running total for the day, so this shift's cash is the new total minus what the last count reported
-  function prevSales(){return (prevCount&&!isOpening()&&prevCount.sales!==null&&prevCount.sales!==undefined&&prevCount.sales!=='')?Number(prevCount.sales)||0:0;}
-  function shiftSales(){var s=numVal('sales');return s===null?null:r2(s-prevSales());}
 
   function checkLowDenoms(){
     var warnings=[];var keys=Object.keys(LOW_THRESHOLDS);
@@ -213,82 +208,115 @@
       if(qty<LOW_THRESHOLDS[k].min)warnings.push(LOW_THRESHOLDS[k].label+': '+qty+' (need '+LOW_THRESHOLDS[k].min+')');
     }
     var a=document.getElementById('lowAlert');
-    var counted=0;var dEls=document.querySelectorAll('[data-val]');for(var j=0;j<dEls.length;j++)counted+=parseInt(dEls[j].value)||0;
+    var counted=0;var dEls=document.querySelectorAll('[data-val]');
+    for(var j=0;j<dEls.length;j++)counted+=parseInt(dEls[j].value)||0;
     if(warnings.length&&counted>0){a.innerHTML='Running low on change — get more of these from the bank:<br>'+warnings.join('<br>');a.style.display='block';}else{a.style.display='none';}
     return warnings;
   }
 
   var connStatus='loading';   // 'ok' | 'empty' | 'error'
+  var book=null;              // last count, today's opening count, last night's close
 
-  // Sheets can send dates back as full date strings and times as 1899 dates. Normalize both.
-  function normDate(x){
-    var s=String(x||'');
-    if(/^\d{2}\/\d{2}\/\d{4}$/.test(s))return s;
-    var d=new Date(s);
-    return isNaN(d)?s:d.toLocaleDateString('en-US',{month:'2-digit',day:'2-digit',year:'numeric'});
-  }
   function normTime(x){
     var s=String(x||'');
     if(/^\d{1,2}:\d{2}\s?(AM|PM)$/i.test(s))return s;
     var d=new Date(s);
     return isNaN(d)?s:d.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
   }
+  function shortDate(key){            // yyyy-mm-dd -> Sep 22
+    var p=String(key||'').split('-');
+    if(p.length!==3)return String(key||'');
+    return new Date(p[0],p[1]-1,p[2]).toLocaleDateString('en-US',{month:'short',day:'numeric'});
+  }
+  function todayKey(){
+    var d=new Date();
+    return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+  }
 
-  function getLastCount(){
+  function loadBook(){
     var timeout=new Promise(function(res){setTimeout(function(){res('TIMEOUT');},6000);});
     var req=fetch(GOOGLE_SHEET_URL).then(function(r){return r.json();}).catch(function(){return 'ERROR';});
     return Promise.race([req,timeout]).then(function(p){
-      if(p==='TIMEOUT'||p==='ERROR'||p===null||typeof p!=='object'){connStatus='error';return null;}
-      if(p.total!==undefined&&!isNaN(p.total)&&p.date){connStatus='ok';p.date=normDate(p.date);p.time=normTime(p.time);return p;}
-      connStatus='empty';return null;
+      if(p==='TIMEOUT'||p==='ERROR'||p===null||typeof p!=='object'){connStatus='error';book=null;return null;}
+      if(!p.last){connStatus='empty';book=null;return null;}
+      connStatus='ok';
+      if(p.last)p.last.time=normTime(p.last.time);
+      if(p.todayOpen)p.todayOpen.time=normTime(p.todayOpen.time);
+      if(p.prevClose)p.prevClose.time=normTime(p.prevClose.time);
+      book=p;return p;
     });
   }
 
-  function isOpening(){return !prevCount||prevCount.date!==todayStr();}
+  // This count opens the day if nothing has been counted today yet
+  function isOpening(){return !book||!book.todayOpen;}
+  function anchor(){return book?(book.todayOpen||book.prevClose||book.last):null;}
+  function wdSinceAnchor(){return book?(book.todayOpen?Number(book.wdSinceTodayOpen||0):Number(book.wdSinceLast||0)):0;}
 
   function renderPrev(){
     var b=document.getElementById('prevBox');
-    if(!prevCount){
+    if(!book){
       b.innerHTML=connStatus==='error'
         ?'<b style="color:#c0392b">Can\'t reach the count records.</b> Finish your count and submit, then tell the owner the app couldn\'t load the last count.'
         :'No previous count on record yet. This count will start the log.';
       return;
     }
-    var w=wdSince();
-    b.innerHTML='Last count: <b>$'+Number(prevCount.total).toFixed(2)+'</b> — '+prevCount.employee+', '+prevCount.shift+', '+prevCount.date+' '+prevCount.time+
-      (!isOpening()&&prevSales()>0?'<br>Cleantie cash sales at that count: <b>$'+prevSales().toFixed(2)+'</b>':'')+
-      (w>0?'<br>Owner withdrawals since that count: <b>$'+w.toFixed(2)+'</b>':'')+
-      (isOpening()?'<br>First count of the day.':'');
+    var h='';
+    if(book.prevClose&&isOpening())
+      h+='Last night\'s close: <b>$'+book.prevClose.total.toFixed(2)+'</b> — '+book.prevClose.employee+', '+shortDate(book.prevClose.date)+' '+book.prevClose.time+'<br>';
+    if(book.todayOpen)
+      h+='Opened today: <b>$'+book.todayOpen.total.toFixed(2)+'</b> — '+book.todayOpen.employee+', '+book.todayOpen.time+'<br>';
+    h+='Last count: <b>$'+book.last.total.toFixed(2)+'</b> — '+book.last.employee+', '+book.last.shift+', '+book.last.time;
+    var w=wdSinceAnchor();
+    if(w>0)h+='<br>Owner withdrawals since'+(book.todayOpen?' open':' then')+': <b>$'+w.toFixed(2)+'</b>';
+    if(isOpening())h+='<br>First count of the day.';
+    b.innerHTML=h;
   }
 
-  // True only on the count where the drawer first goes $100+ over the bank.
-  // Withdrawals since the last count are taken off before deciding whether it was already over.
   function firstTimeOver(total){
-    if(!prevCount)return false;
+    if(!book)return false;
     var nowOver=(total-APPROVED_BANK)>=OWNER_WITHDRAWAL_ALERT;
-    var wasOver=(Number(prevCount.total)-wdSince()-APPROVED_BANK)>=OWNER_WITHDRAWAL_ALERT;
+    var wasOver=(Number(book.last.total)-Number(book.wdSinceLast||0)-APPROVED_BANK)>=OWNER_WITHDRAWAL_ALERT;
     return nowOver&&!wasOver;
   }
 
+  // Everything is measured against today's opening count plus the day's running sales,
+  // so one bad entry mid-day can't throw off every count after it.
   function evaluate(total){
     var sales=numVal('sales');
     var takingOver=document.getElementById('takingOver').value;
     var agreed=document.getElementById('agreed').checked;
-    var r={issues:[],expectedText:'',expectedClass:'',needsNote:false,alertOwner:false};
-    if(prevCount){
-      var start=Number(prevCount.total);var w=wdSince();
+    var r={issues:[],expectedText:'',expectedClass:'',needsNote:false,alertOwner:false,expected:null,diff:null,causes:[]};
+    if(book){
+      var w=wdSinceAnchor();
       if(isOpening()){
-        var exp1=r2(start-w);var gap=r2(total-exp1);
-        if(Math.abs(gap)<=TOLERANCE){r.expectedText='Expected $'+exp1.toFixed(2)+' from last close — matches';r.expectedClass='ok';}
-        else{r.issues.push('OVERNIGHT DIFFERENCE '+signed(gap));r.needsNote=true;r.alertOwner=true;
-             r.expectedText='Expected $'+exp1.toFixed(2)+' from last close — difference '+signed(gap);r.expectedClass='low';}
-      }else if(sales!==null&&sales<prevSales()){
-        r.expectedText='Cleantie total can\'t be lower than the last count\'s $'+prevSales().toFixed(2)+' — enter the day\'s running total.';r.expectedClass='low';
-      }else if(sales!==null){
-        var exp2=r2(start+shiftSales()-w);var diff=r2(total-exp2);
+        var a=book.prevClose||book.last;
+        var exp1=r2(a.total-w);var gap=r2(total-exp1);
+        r.expected=exp1;r.diff=gap;
+        if(Math.abs(gap)<=TOLERANCE){r.expectedText='Matches last night\'s close of $'+a.total.toFixed(2);r.expectedClass='ok';}
+        else{
+          r.issues.push('OVERNIGHT DIFFERENCE '+signed(gap));r.needsNote=true;r.alertOwner=true;
+          r.expectedText='Expected $'+exp1.toFixed(2)+' from last night\'s close — difference '+signed(gap);r.expectedClass='low';
+          r.causes.push(gap<0?'Cash left the drawer overnight — a withdrawal nobody logged, or last night\'s count was over.'
+                             :'More cash than last night — last night\'s count was likely short, or money was added.');
+        }
+      }else if(sales===null){
+        r.expectedText='Enter today\'s running cash sales total from Cleantie.';r.expectedClass='';
+      }else{
+        var exp2=r2(book.todayOpen.total+sales-w);var diff=r2(total-exp2);
+        r.expected=exp2;r.diff=diff;
         if(Math.abs(diff)<=TOLERANCE){r.expectedText='Expected $'+exp2.toFixed(2)+' — matches';r.expectedClass='ok';}
-        else{r.issues.push('HANDOFF DIFFERENCE '+signed(diff));r.needsNote=true;r.alertOwner=true;
-             r.expectedText='Expected $'+exp2.toFixed(2)+' — difference '+signed(diff);r.expectedClass='low';}
+        else{
+          r.issues.push('DIFFERENCE '+signed(diff));r.needsNote=true;r.alertOwner=true;
+          r.expectedText='Expected $'+exp2.toFixed(2)+' — difference '+signed(diff);r.expectedClass='low';
+          var lastSales=(book.last.sales===null||book.last.sales===undefined)?null:Number(book.last.sales);
+          if(diff>0&&lastSales!==null&&Math.abs(diff-lastSales)<=0.02)
+            r.causes.push('The sales figure looks like this shift only. Cleantie\'s box needs the day\'s running total, which already includes the $'+lastSales.toFixed(2)+' reported earlier.');
+          if(diff<0&&Math.abs(diff+sales)<=0.02)
+            r.causes.push('The drawer is short by exactly today\'s sales — the cash may never have gone in, or the sales total belongs to a different day.');
+          if(Math.abs(diff)<=2)r.causes.push('Small enough to be a miscount — recount the coins and the $1s.');
+          if(diff<0)r.causes.push('Cash out with no record: a refund paid from the drawer, or an owner withdrawal that wasn\'t logged.');
+          else r.causes.push('Extra cash: a card or account sale may have been rung as cash, or the Cleantie total is understated.');
+        }
       }
     }
     if(takingOver&&!agreed){r.issues.push('NEXT PERSON DID NOT CONFIRM');r.needsNote=true;r.alertOwner=true;}
@@ -305,7 +333,8 @@
     document.getElementById('total').textContent='$'+total.toFixed(2);
     var bankDiff=r2(total-APPROVED_BANK);
     var s=document.getElementById('status');
-    if(total<APPROVED_BANK){s.textContent=money(bankDiff)+' under the $'+APPROVED_BANK+' bank';s.className='status low';}
+    if(total===0){s.textContent='Start counting';s.className='status';}
+    else if(total<APPROVED_BANK){s.textContent=money(bankDiff)+' under the $'+APPROVED_BANK+' bank';s.className='status low';}
     else if(bankDiff>0){s.textContent='+'+money(bankDiff)+' above bank';s.className='status ok';}
     else{s.textContent='Balanced — $'+APPROVED_BANK.toFixed(2);s.className='status ok';}
 
@@ -349,15 +378,14 @@
     if(!employee){showToast('Please select who is counting.','error');return;}
     var btn=document.getElementById('countBtn');btn.disabled=true;btn.textContent='Checking…';
 
-    getLastCount().then(function(last){
-      prevCount=last;renderPrev();
+    loadBook().then(function(bk){
+      renderPrev();
       var total=calc().total;
       var ev=evaluate(total);
       var sales=numVal('sales');
       var note=document.getElementById('note').value.trim();
 
-      if(prevCount&&!isOpening()&&sales===null)return stopSubmit(btn,'Enter today\'s running cash sales total from Cleantie.','sales');
-      if(sales!==null&&sales<prevSales())return stopSubmit(btn,'Enter the day\'s running total from Cleantie. It can\'t be lower than the last count\'s $'+prevSales().toFixed(2)+'.','sales');
+      if(book&&!isOpening()&&sales===null)return stopSubmit(btn,'Enter today\'s running cash sales total from Cleantie.','sales');
       if(document.getElementById('carts').value==='')return stopSubmit(btn,'Enter the cart count.','carts');
       if(ev.needsNote&&!note)return stopSubmit(btn,'Add a note explaining the difference.','note');
 
@@ -368,13 +396,11 @@
       var id=makeId('CD');
       var takingOver=document.getElementById('takingOver').value;
       var agreed=document.getElementById('agreed').checked;
-      var w=wdSince();
+      var w=wdSinceAnchor();
       var crossedOver=firstTimeOver(total);
 
-      var expectedValue='',differenceValue='';
-      if(prevCount&&sales!==null&&prevCount.date===date){
-        expectedValue=r2(Number(prevCount.total)+shiftSales()-w);differenceValue=r2(total-expectedValue);
-      }
+      var expectedValue=(ev.expected===null||ev.expected===undefined)?'':ev.expected;
+      var differenceValue=(ev.diff===null||ev.diff===undefined)?'':ev.diff;
 
       var denomData={};var lines=[];var allItems=bills.concat(coins);
       for(var i=0;i<allItems.length;i++){
@@ -400,22 +426,28 @@
 
       var body='';
       if(ev.issues.length)body+=ev.issues.join('\n')+'\n\n';
-      body+='Counted: $'+total.toFixed(2)+' by '+employee+' ('+currentShift+', '+date+' '+time+')\n';
-      if(ev.expectedText)body+=ev.expectedText+'\n';
-      if(prevCount)body+='Previous count: $'+Number(prevCount.total).toFixed(2)+' by '+prevCount.employee+' ('+prevCount.shift+', '+prevCount.date+' '+prevCount.time+')\n';
-      if(sales!==null)body+='Cleantie cash sales today: $'+Number(sales).toFixed(2)+(prevSales()>0?' (this shift: $'+shiftSales().toFixed(2)+')':'')+'\n';
-      if(w>0)body+='Owner withdrawals since last count: $'+w.toFixed(2)+'\n';
+      if(book){
+        if(book.prevClose)body+='Last night close   $'+book.prevClose.total.toFixed(2)+'   '+book.prevClose.employee+', '+shortDate(book.prevClose.date)+' '+book.prevClose.time+'\n';
+        if(book.todayOpen)body+='Opened today       $'+book.todayOpen.total.toFixed(2)+'   '+book.todayOpen.employee+', '+book.todayOpen.time+'\n';
+        if(book.todayOpen&&book.prevClose)body+='Overnight change   '+signed(r2(book.todayOpen.total-book.prevClose.total))+'\n';
+        if(sales!==null)body+='Cash sales today  +$'+Number(sales).toFixed(2)+'   (Cleantie running total)\n';
+        if(w>0)body+='Owner withdrawals  -$'+w.toFixed(2)+'\n';
+        if(ev.expected!==null&&ev.expected!==undefined)body+='Expected now       $'+Number(ev.expected).toFixed(2)+'\n';
+      }
+      body+='Counted now        $'+total.toFixed(2)+'   '+employee+', '+currentShift+' '+time+'\n';
+      if(ev.diff!==null&&ev.diff!==undefined&&Math.abs(ev.diff)>TOLERANCE)body+='DIFFERENCE         '+signed(ev.diff)+'\n';
+      if(ev.causes.length)body+='\nLikely cause:\n- '+ev.causes.join('\n- ')+'\n';
+      if(note)body+='\nStaff note: '+note+'\n';
       if(takingOver)body+='Handed to: '+takingOver+(agreed?' (confirmed)':' (DID NOT CONFIRM)')+'\n';
-      if(note)body+='Note: '+note+'\n';
       if(crossedOver)body+='\nDrawer is $'+bankDiff.toFixed(2)+' over the bank — ready for a withdrawal. No further emails about this until it drops back under.\n';
-      if(lowWarnings.length)body+='\nLow change: '+lowWarnings.join(', ')+'\n';
+      if(lowWarnings.length)body+='\nRunning low on change: '+lowWarnings.join(', ')+'\n';
       body+='\nDenominations:\n'+lines.join('\n')+'\n\nID: '+id;
 
       var tag=ev.issues.length?ev.issues[0].split(' ').slice(0,2).join(' ')
         :(total<APPROVED_BANK?'Drawer Short':(crossedOver?'Drawer $100+ Over Bank':'Low Change'));
 
       var emailPromise=needsAlert?emailjs.send(EMAILJS_SERVICE_ID,EMAILJS_TEMPLATE_ID,{
-        to_email:OWNER_EMAIL,subject:tag+' — '+currentShift+' — '+employee+' — '+date+' '+time,employee:employee,shift:currentShift,
+        to_email:OWNER_EMAIL,subject:tag+' — '+employee+' — '+new Date().toLocaleDateString('en-US',{month:'short',day:'numeric'})+' '+time,employee:employee,shift:currentShift,
         timestamp:date+' '+time,total:'$'+total.toFixed(2),approved:'$'+APPROVED_BANK.toFixed(2),difference:statusText,breakdown:body
       }):Promise.resolve();
 
@@ -435,16 +467,16 @@
     if(amount===null||amount<=0){showToast('Enter the amount physically removed.','error');return;}
 
     btn.disabled=true;btn.textContent='Recording…';
-    getLastCount().then(function(last){
+    loadBook().then(function(bk){
+      var last=bk?bk.last:null;
       if(!last){
         showToast('Submit a drawer count before recording a withdrawal.','error');
         btn.disabled=false;btn.textContent='Record owner withdrawal';return;
       }
-      prevCount=last;
       var date=todayStr();
       var time=new Date().toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});
       var id=makeId('OW');
-      var priorW=Number(last.withdrawalsSinceCount||0);
+      var priorW=Number(bk.wdSinceLast||0);
       var available=Math.max(0,r2(Number(last.total)-APPROVED_BANK-priorW));
 
       var sheetPromise=post({
@@ -468,8 +500,8 @@
         document.getElementById('withdrawOwner').value='';
         showToast('Owner withdrawal recorded — '+id,'success');
         btn.disabled=false;btn.textContent='Record owner withdrawal';
-        return getLastCount();
-      }).then(function(updated){prevCount=updated;renderPrev();calc();});
+        return loadBook();
+      }).then(function(){renderPrev();calc();});
     }).catch(function(err){
       console.error(err);showToast('Owner withdrawal submission error.','error');
       btn.disabled=false;btn.textContent='Record owner withdrawal';
@@ -478,7 +510,7 @@
 
   function showToast(msg,type){var t=document.getElementById('toast');t.textContent=msg;t.className='toast '+type;}
 
-  getLastCount().then(function(last){prevCount=last;renderPrev();calc();});
+  loadBook().then(function(){renderPrev();calc();});
   calc();
 </script>
 </body>

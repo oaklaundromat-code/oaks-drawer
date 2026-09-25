@@ -1,3 +1,4 @@
+```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -39,6 +40,7 @@
   .status.low, .expected.low { color: #c0392b; }
   .expected { font-size: 13px; margin-top: 8px; padding-top: 8px; border-top: 1px solid #e6e6e2; color: #555; }
   .owner-alert { background: #fff7e6; color: #9a5b00; border-radius: 8px; padding: 12px 14px; margin: 0.5rem 1.5rem; font-size: 13px; font-weight: 600; display: none; }
+  .note-alert { background: #f4f6fb; color: #445; border-radius: 8px; padding: 10px 14px; margin: 0.5rem 1.5rem; font-size: 13px; font-weight: 500; display: none; }
   .low-alert, .issue-alert { background: #fdf0f0; border-radius: 8px; padding: 10px 14px; margin: 0.5rem 1.5rem; font-size: 13px; color: #c0392b; font-weight: 500; display: none; }
   .withdraw-box { border-top: 1px solid #ebebeb; margin-top: 1rem; padding-bottom: 1rem; }
   .submit-wrap { padding: 0.75rem 1.5rem 1.5rem; }
@@ -56,47 +58,36 @@
   }
 </style>
 </head>
-
 <body>
 <div class="card">
   <div class="card-header">
     <h1>Cash drawer count</h1>
-    <p>The Oaks Laundry</p>
+    <p id="shiftLine">The Oaks Laundry</p>
   </div>
 
   <div class="prev-box" id="prevBox">Loading last count…</div>
 
   <div class="section">
     <div class="section-label">Who</div>
-
     <div class="field">
       <label for="emp">Counting employee</label>
       <select id="emp"></select>
     </div>
-
-    <div class="field">
+    <div class="field" id="takingOverField">
       <label for="takingOver">Taking over the drawer</label>
       <select id="takingOver" onchange="calc()"></select>
     </div>
-
-    <label class="check" id="agreeWrap">
-      <input type="checkbox" id="agreed" onchange="calc()">
-      Next person watched this count and agrees
-    </label>
+    <label class="check" id="agreeWrap"><input type="checkbox" id="agreed" onchange="calc()"> Next person watched this count and agrees</label>
   </div>
 
   <div class="section">
     <div class="section-label">Current count</div>
-
     <div class="row2">
       <div class="field" id="salesField">
         <label for="sales">Cleantie cash sales today</label>
         <input class="money" id="sales" type="number" inputmode="decimal" min="0" step="0.01" placeholder="0.00" oninput="calc()">
-        <div class="hint">
-          Enter the day's running Cleantie cash-sales total, not just this shift. Leave blank for the first count of the day.
-        </div>
+        <div class="hint">The day's running total from Cleantie — not just your shift. Leave blank on the first count of the day.</div>
       </div>
-
       <div class="field">
         <label for="carts">Cart count</label>
         <input class="num" id="carts" type="number" inputmode="numeric" min="0" step="1" placeholder="Required" oninput="calc()">
@@ -105,31 +96,19 @@
     </div>
   </div>
 
-  <div class="section">
-    <div class="section-label">Bills</div>
-    <div id="bills"></div>
-  </div>
-
-  <div class="section">
-    <div class="section-label">Coins</div>
-    <div id="coins"></div>
-  </div>
+  <div class="section"><div class="section-label">Bills</div><div id="bills"></div></div>
+  <div class="section"><div class="section-label">Coins</div><div id="coins"></div></div>
 
   <div class="total-card">
     <div class="total-top">
-      <div>
-        <div class="total-lbl">Total</div>
-        <div class="status" id="status">—</div>
-      </div>
-
+      <div><div class="total-lbl">Total</div><div class="status" id="status">—</div></div>
       <div class="total-amt" id="total">$0.00</div>
     </div>
-
     <div class="expected" id="expected"></div>
   </div>
 
   <div class="owner-alert" id="ownerAlert"></div>
-  <div class="issue-alert" id="cartAlert"></div>
+  <div class="note-alert" id="cartAlert"></div>
   <div class="low-alert" id="lowAlert"></div>
   <div class="issue-alert" id="issueAlert"></div>
 
@@ -140,1547 +119,596 @@
     </div>
   </div>
 
-  <div class="submit-wrap">
-    <button type="button" class="submit-btn" id="countBtn" onclick="submitCount()">
-      Submit drawer count
-    </button>
-  </div>
+  <div class="submit-wrap"><button type="button" class="submit-btn" id="countBtn" onclick="submitCount()">Submit drawer count</button></div>
 
   <div class="section withdraw-box">
     <div class="section-label">Owner withdrawal</div>
-
     <div class="row2">
       <div class="field">
         <label for="withdrawOwner">Owner</label>
         <select id="withdrawOwner"></select>
       </div>
-
       <div class="field">
         <label for="withdrawAmount">Amount removed</label>
         <input class="money" id="withdrawAmount" type="number" inputmode="decimal" min="0" step="0.01" placeholder="0.00">
       </div>
     </div>
-
-    <div class="hint" id="withdrawHint" style="font-size:11px;color:#999;margin:-4px 0 10px;">
-      Record this only after an owner physically removes cash.
-    </div>
-
-    <button type="button" class="submit-btn secondary" id="withdrawBtn" onclick="submitWithdrawal()">
-      Record owner withdrawal
-    </button>
+    <div class="hint" id="withdrawHint" style="font-size:11px;color:#999;margin:-4px 0 10px;">Record this only after an owner physically removes cash.</div>
+    <button type="button" class="submit-btn secondary" id="withdrawBtn" onclick="submitWithdrawal()">Record owner withdrawal</button>
   </div>
 
   <div class="toast" id="toast"></div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
-
 <script>
-  var EMAILJS_PUBLIC_KEY = 'ndWWB1hJwPp1a_UvF';
-  var EMAILJS_SERVICE_ID = 'service_vt5n8lc';
-  var EMAILJS_TEMPLATE_ID = 'template_m2zbjc3';
-  var OWNER_EMAIL = 'oaklaundromat@gmail.com';
+  var EMAILJS_PUBLIC_KEY='ndWWB1hJwPp1a_UvF';
+  var EMAILJS_SERVICE_ID='service_vt5n8lc';
+  var EMAILJS_TEMPLATE_ID='template_m2zbjc3';
+  var OWNER_EMAIL='oaklaundromat@gmail.com';
+  var APPROVED_BANK=400;
+  var OWNER_WITHDRAWAL_ALERT=100;
+  var TOLERANCE=1.00;
+  var TZ='America/Los_Angeles';
+  var GOOGLE_SHEET_URL='https://script.google.com/macros/s/AKfycbyiauTAC7ayYeNSAGdpIeWB7G_Uc9Z-1dC4Pw0IWxgiz-1BuDa9M7R9hOM5Q60bgvW6/exec';
 
-  var APPROVED_BANK = 400;
-  var OWNER_WITHDRAWAL_ALERT = 100;
-  var TOLERANCE = 1.00;
+  var STAFF=['Cinthia','Brian','Ramiro','Maria','Juan','Manager'];
+  var OWNERS=['Hamid','Raihana','Mina'];
+  var START_OF_DAY='Start of day — nobody here yet';
 
-  var GOOGLE_SHEET_URL = 'https://script.google.com/macros/s/AKfycbyiauTAC7ayYeNSAGdpIeWB7G_Uc9Z-1dC4Pw0IWxgiz-1BuDa9M7R9hOM5Q60bgvW6/exec';
-
-  var STAFF = [
-    'Cinthia',
-    'Brian',
-    'Ramiro',
-    'Maria',
-    'Juan',
-    'Manager'
-  ];
-
-  var OWNERS = [
-    'Hamid',
-    'Raihana',
-    'Mina'
-  ];
-
-  var LOW_THRESHOLDS = {
-    'd_1bills': { min: 25, label: '$1 bills' },
-    'd_5bills': { min: 8, label: '$5 bills' },
-    'd_Quarters': { min: 20, label: 'Quarters' },
-    'd_Dimes': { min: 20, label: 'Dimes' },
-    'd_Nickels': { min: 40, label: 'Nickels' },
-    'd_Pennies': { min: 50, label: 'Pennies' }
+  var LOW_THRESHOLDS={
+    'd_1bills':{min:25,label:'$1 bills'},
+    'd_5bills':{min:8,label:'$5 bills'},
+    'd_Quarters':{min:20,label:'Quarters'},
+    'd_Dimes':{min:20,label:'Dimes'},
+    'd_Nickels':{min:40,label:'Nickels'},
+    'd_Pennies':{min:50,label:'Pennies'}
   };
 
-  var bills = [
-    { label: '$100 bills', val: 100 },
-    { label: '$50 bills', val: 50 },
-    { label: '$20 bills', val: 20 },
-    { label: '$10 bills', val: 10 },
-    { label: '$5 bills', val: 5 },
-    { label: '$1 bills', val: 1 }
-  ];
+  var bills=[{label:'$100 bills',val:100},{label:'$50 bills',val:50},{label:'$20 bills',val:20},{label:'$10 bills',val:10},{label:'$5 bills',val:5},{label:'$1 bills',val:1}];
+  var coins=[{label:'Quarters',val:0.25},{label:'Dimes',val:0.10},{label:'Nickels',val:0.05},{label:'Pennies',val:0.01}];
 
-  var coins = [
-    { label: 'Quarters', val: 0.25 },
-    { label: 'Dimes', val: 0.10 },
-    { label: 'Nickels', val: 0.05 },
-    { label: 'Pennies', val: 0.01 }
-  ];
+  var connStatus='loading';
+  var book=null;
 
-  var connStatus = 'loading';
-  var book = null;
+  if(window.emailjs)emailjs.init(EMAILJS_PUBLIC_KEY);
 
-  if (window.emailjs) {
-    emailjs.init(EMAILJS_PUBLIC_KEY);
+  function fillSelect(id,first,items){
+    var h='<option value="">'+first+'</option>';
+    for(var i=0;i<items.length;i++)h+='<option value="'+items[i]+'">'+items[i]+'</option>';
+    document.getElementById(id).innerHTML=h;
   }
+  fillSelect('emp','Select employee',STAFF);
+  fillSelect('takingOver','End of day — nobody taking over',STAFF);
+  fillSelect('withdrawOwner','Select owner',OWNERS);
 
-  function fillSelect(id, firstOption, items) {
-    var html = '<option value="">' + firstOption + '</option>';
-
-    for (var i = 0; i < items.length; i++) {
-      html += '<option value="' + items[i] + '">' + items[i] + '</option>';
-    }
-
-    document.getElementById(id).innerHTML = html;
-  }
-
-  fillSelect('emp', 'Select employee', STAFF);
-  fillSelect('takingOver', 'End of day — nobody taking over', STAFF);
-  fillSelect('withdrawOwner', 'Select owner', OWNERS);
-
-  function buildRows(items, containerId) {
-    var container = document.getElementById(containerId);
-
-    for (var i = 0; i < items.length; i++) {
-      var item = items[i];
-      var id = 'd_' + item.label.replace(/\W/g, '');
-      var row = document.createElement('div');
-
-      row.className = 'denom-row';
-
-      row.innerHTML =
-        '<div class="denom-name">' + item.label + '</div>' +
-        '<div class="qty-controls">' +
-          '<button type="button" onclick="adj(\'' + id + '\',-1)">−</button>' +
-          '<input type="number" inputmode="numeric" id="' + id + '" value="0" min="0" data-val="' + item.val + '" oninput="calc()">' +
-          '<button type="button" onclick="adj(\'' + id + '\',1)">+</button>' +
-        '</div>' +
-        '<div class="denom-sub" id="sub_' + id + '">$0.00</div>';
-
-      container.appendChild(row);
+  function buildRows(items,cid){
+    var c=document.getElementById(cid);
+    for(var i=0;i<items.length;i++){
+      var item=items[i];var id='d_'+item.label.replace(/\W/g,'');
+      var row=document.createElement('div');row.className='denom-row';
+      row.innerHTML='<div class="denom-name">'+item.label+'</div><div class="qty-controls">'+
+        '<button type="button" onclick="adj(\''+id+'\',-1)">−</button>'+
+        '<input type="number" inputmode="numeric" id="'+id+'" value="0" min="0" data-val="'+item.val+'" oninput="calc()">'+
+        '<button type="button" onclick="adj(\''+id+'\',1)">+</button></div>'+
+        '<div class="denom-sub" id="sub_'+id+'">$0.00</div>';
+      c.appendChild(row);
     }
   }
+  buildRows(bills,'bills');buildRows(coins,'coins');
 
-  buildRows(bills, 'bills');
-  buildRows(coins, 'coins');
+  function adj(id,d){var el=document.getElementById(id);el.value=Math.max(0,(parseInt(el.value)||0)+d);calc();}
+  function r2(n){return Math.round(n*100)/100;}
+  function money(n){return '$'+Math.abs(n).toFixed(2);}
+  function signed(n){return (n>=0?'+':'-')+money(n);}
+  function numVal(id){var v=document.getElementById(id).value;return v===''?null:(parseFloat(v)||0);}
 
-  function adj(id, difference) {
-    var element = document.getElementById(id);
-    var current = parseInt(element.value) || 0;
-
-    element.value = Math.max(0, current + difference);
-    calc();
+  function laParts(){
+    var parts=new Intl.DateTimeFormat('en-US',{timeZone:TZ,year:'numeric',month:'2-digit',day:'2-digit',hour:'numeric',minute:'2-digit',hourCycle:'h23'}).formatToParts(new Date());
+    var v={};
+    for(var i=0;i<parts.length;i++)if(parts[i].type!=='literal')v[parts[i].type]=parts[i].value;
+    return v;
   }
 
-  function r2(number) {
-    return Math.round(number * 100) / 100;
+  /* Opening runs 5-8 AM, afternoon handoff 3-7 PM, close 9 PM-1 AM */
+  function shiftNow(){
+    var h=Number(laParts().hour);
+    if(h>=3&&h<12)return 'Morning';
+    if(h>=12&&h<21)return 'Afternoon';
+    return 'Evening';
   }
 
-  function money(number) {
-    return '$' + Math.abs(number).toFixed(2);
+  /* Anything before 3 AM still belongs to the previous business day */
+  function businessDateStr(){
+    var v=laParts();
+    var day=new Date(Date.UTC(Number(v.year),Number(v.month)-1,Number(v.day)));
+    if(Number(v.hour)<3)day.setUTCDate(day.getUTCDate()-1);
+    return String(day.getUTCMonth()+1).padStart(2,'0')+'/'+String(day.getUTCDate()).padStart(2,'0')+'/'+day.getUTCFullYear();
   }
+  function todayStr(){return businessDateStr();}
+  function currentTimeStr(){return new Date().toLocaleTimeString('en-US',{timeZone:TZ,hour:'2-digit',minute:'2-digit'});}
 
-  function signed(number) {
-    return (number >= 0 ? '+' : '-') + money(number);
-  }
-
-  function losAngelesParts() {
-    var parts = new Intl.DateTimeFormat('en-US', {
-      timeZone: 'America/Los_Angeles',
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-      hour: 'numeric',
-      minute: '2-digit',
-      hourCycle: 'h23'
-    }).formatToParts(new Date());
-
-    var values = {};
-
-    for (var i = 0; i < parts.length; i++) {
-      if (parts[i].type !== 'literal') {
-        values[parts[i].type] = parts[i].value;
-      }
+  function checkLowDenoms(){
+    var warnings=[];var keys=Object.keys(LOW_THRESHOLDS);
+    for(var i=0;i<keys.length;i++){
+      var k=keys[i];var el=document.getElementById(k);
+      if(!el)continue;
+      var qty=parseInt(el.value)||0;
+      if(qty<LOW_THRESHOLDS[k].min)warnings.push(LOW_THRESHOLDS[k].label+': '+qty+' (need '+LOW_THRESHOLDS[k].min+')');
     }
-
-    return values;
-  }
-
-  function todayStr() {
-    var values = losAngelesParts();
-
-    return values.month + '/' + values.day + '/' + values.year;
-  }
-
-  function businessDateStr() {
-    var values = losAngelesParts();
-
-    var date = new Date(Date.UTC(
-      Number(values.year),
-      Number(values.month) - 1,
-      Number(values.day)
-    ));
-
-    /*
-     * Counts entered between midnight and 2:59 AM belong
-     * to the previous business day.
-     */
-    if (Number(values.hour) < 3) {
-      date.setUTCDate(date.getUTCDate() - 1);
-    }
-
-    return String(date.getUTCMonth() + 1).padStart(2, '0') +
-      '/' +
-      String(date.getUTCDate()).padStart(2, '0') +
-      '/' +
-      date.getUTCFullYear();
-  }
-
-  function currentTimeStr() {
-    return new Date().toLocaleTimeString('en-US', {
-      timeZone: 'America/Los_Angeles',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  }
-
-  function numVal(id) {
-    var value = document.getElementById(id).value;
-
-    return value === '' ? null : (parseFloat(value) || 0);
-  }
-
-  function normTime(value) {
-    var text = String(value || '');
-
-    if (/^\d{1,2}:\d{2}\s?(AM|PM)$/i.test(text)) {
-      return text;
-    }
-
-    var date = new Date(text);
-
-    if (isNaN(date)) {
-      return text;
-    }
-
-    return date.toLocaleTimeString('en-US', {
-      timeZone: 'America/Los_Angeles',
-      hour: 'numeric',
-      minute: '2-digit'
-    });
-  }
-
-  function shortDate(value) {
-    var text = String(value || '');
-
-    if (/^\d{1,2}\/\d{1,2}\/\d{4}$/.test(text)) {
-      var slashParts = text.split('/');
-
-      return new Date(
-        Number(slashParts[2]),
-        Number(slashParts[0]) - 1,
-        Number(slashParts[1])
-      ).toLocaleDateString('en-US', {
-        month: 'short',
-        day: 'numeric'
-      });
-    }
-
-    var dashParts = text.split('-');
-
-    if (dashParts.length !== 3) {
-      return text;
-    }
-
-    return new Date(
-      Number(dashParts[0]),
-      Number(dashParts[1]) - 1,
-      Number(dashParts[2])
-    ).toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric'
-    });
-  }
-
-  function loadBook(timeoutMs) {
-    var timeout = new Promise(function(resolve) {
-      setTimeout(function() {
-        resolve('TIMEOUT');
-      }, timeoutMs || 8000);
-    });
-
-    var request = fetch(
-      GOOGLE_SHEET_URL + '?t=' + Date.now(),
-      { cache: 'no-store' }
-    )
-      .then(function(response) {
-        if (!response.ok) {
-          throw new Error('Unable to read the ledger');
-        }
-
-        return response.json();
-      })
-      .catch(function() {
-        return 'ERROR';
-      });
-
-    return Promise.race([request, timeout]).then(function(payload) {
-      if (
-        payload === 'TIMEOUT' ||
-        payload === 'ERROR' ||
-        payload === null ||
-        typeof payload !== 'object' ||
-        payload.success === false
-      ) {
-        connStatus = 'error';
-        book = null;
-        return null;
-      }
-
-      if (!payload.last) {
-        connStatus = 'empty';
-        book = null;
-        return null;
-      }
-
-      connStatus = 'ok';
-
-      payload.wdSinceLast = Number(
-        payload.last.withdrawalsSinceCount || 0
-      );
-
-      payload.wdSinceTodayOpen =
-        payload.todayOpen &&
-        payload.todayOpen.submissionId === payload.last.submissionId
-          ? payload.wdSinceLast
-          : Number(payload.wdSinceTodayOpen || 0);
-
-      if (payload.last) {
-        payload.last.time = normTime(payload.last.time);
-      }
-
-      if (payload.todayOpen) {
-        payload.todayOpen.time = normTime(payload.todayOpen.time);
-      }
-
-      if (payload.prevClose) {
-        payload.prevClose.time = normTime(payload.prevClose.time);
-      }
-
-      book = payload;
-      return payload;
-    });
-  }
-
-  function isOpening() {
-    return !book || !book.todayOpen;
-  }
-
-  function wdSinceAnchor() {
-    if (!book) {
-      return 0;
-    }
-
-    return book.todayOpen
-      ? Number(book.wdSinceTodayOpen || 0)
-      : Number(book.wdSinceLast || 0);
-  }
-
-  function cartBaseline() {
-    if (
-      book &&
-      book.lastCart &&
-      Number.isInteger(Number(book.lastCart.count))
-    ) {
-      return Number(book.lastCart.count);
-    }
-
-    return null;
-  }
-
-  function cartChange() {
-    var raw = document.getElementById('carts').value;
-    var baseline = cartBaseline();
-
-    if (raw === '' || baseline === null) {
-      return null;
-    }
-
-    var count = Number(raw);
-
-    if (!Number.isInteger(count) || count < 0) {
-      return null;
-    }
-
-    return {
-      baseline: baseline,
-      count: count,
-      difference: count - baseline
-    };
-  }
-
-  function renderCarts() {
-    var baseline = cartBaseline();
-    var change = cartChange();
-    var hint = document.getElementById('cartHint');
-    var alert = document.getElementById('cartAlert');
-
-    if (baseline === null) {
-      hint.textContent =
-        'Last cart count unavailable — tell the owner if you cannot confirm the carts.';
-    } else {
-      hint.textContent =
-        'Last recorded: ' +
-        baseline +
-        ' carts (' +
-        book.lastCart.employee +
-        ', ' +
-        shortDate(book.lastCart.date) +
-        ').';
-    }
-
-    if (change && change.difference !== 0) {
-      alert.textContent =
-        (change.difference < 0 ? 'MISSING ' : 'EXTRA ') +
-        Math.abs(change.difference) +
-        ' cart(s) versus the last count of ' +
-        baseline +
-        '. Recount and explain the difference in the note.';
-
-      alert.style.display = 'block';
-    } else {
-      alert.style.display = 'none';
-    }
-  }
-
-  function renderPrev() {
-    var box = document.getElementById('prevBox');
-
-    if (!book) {
-      box.innerHTML =
-        connStatus === 'error'
-          ? '<b style="color:#c0392b">Can\'t reach the count records.</b> Finish your count and submit, then tell the owner the app could not load the last count.'
-          : 'No previous count on record yet. This count will start the log.';
-
-      return;
-    }
-
-    var html = '';
-    var countToday = Number(book.countToday || 0);
-
-    html += '<b>Counts today: ' + countToday + '/3.</b> ';
-
-    if (countToday >= 2) {
-      html += 'Minimum reached.<br>';
-    } else {
-      html += 'At least ' + (2 - countToday) + ' more required.<br>';
-    }
-
-    if (countToday >= 3) {
-      html +=
-        '<b style="color:#c0392b">All three counts are already recorded for this business day.</b><br>';
-    }
-
-    if (book.prevClose && isOpening()) {
-      html +=
-        'Last night\'s close: <b>$' +
-        Number(book.prevClose.total).toFixed(2) +
-        '</b> — ' +
-        book.prevClose.employee +
-        ', ' +
-        shortDate(book.prevClose.date) +
-        ' ' +
-        book.prevClose.time +
-        '<br>';
-    }
-
-    if (book.todayOpen) {
-      html +=
-        'Opened today: <b>$' +
-        Number(book.todayOpen.total).toFixed(2) +
-        '</b> — ' +
-        book.todayOpen.employee +
-        ', ' +
-        book.todayOpen.time +
-        '<br>';
-    }
-
-    html +=
-      'Last count: <b>$' +
-      Number(book.last.total).toFixed(2) +
-      '</b> — ' +
-      book.last.employee +
-      ', ' +
-      (book.last.shift || 'Recorded count') +
-      ', ' +
-      book.last.time;
-
-    var withdrawals = wdSinceAnchor();
-
-    if (withdrawals > 0) {
-      html +=
-        '<br>Owner withdrawals since' +
-        (book.todayOpen ? ' opening' : ' the last count') +
-        ': <b>$' +
-        withdrawals.toFixed(2) +
-        '</b>';
-    }
-
-    if (isOpening()) {
-      html += '<br>First count of the day.';
-    }
-
-    box.innerHTML = html;
-  }
-
-  function checkLowDenoms() {
-    var warnings = [];
-    var keys = Object.keys(LOW_THRESHOLDS);
-
-    for (var i = 0; i < keys.length; i++) {
-      var key = keys[i];
-      var element = document.getElementById(key);
-
-      if (!element) {
-        continue;
-      }
-
-      var quantity = parseInt(element.value) || 0;
-
-      if (quantity < LOW_THRESHOLDS[key].min) {
-        warnings.push(
-          LOW_THRESHOLDS[key].label +
-          ': ' +
-          quantity +
-          ' (need ' +
-          LOW_THRESHOLDS[key].min +
-          ')'
-        );
-      }
-    }
-
-    var alert = document.getElementById('lowAlert');
-    var denominationElements = document.querySelectorAll('[data-val]');
-    var counted = 0;
-
-    for (var j = 0; j < denominationElements.length; j++) {
-      counted += parseInt(denominationElements[j].value) || 0;
-    }
-
-    if (warnings.length && counted > 0) {
-      alert.innerHTML =
-        'Running low on change — get more of these from the bank:<br>' +
-        warnings.join('<br>');
-
-      alert.style.display = 'block';
-    } else {
-      alert.style.display = 'none';
-    }
-
+    var a=document.getElementById('lowAlert');
+    var counted=0;var dEls=document.querySelectorAll('[data-val]');
+    for(var j=0;j<dEls.length;j++)counted+=parseInt(dEls[j].value)||0;
+    if(warnings.length&&counted>0){
+      a.innerHTML='Running low on change — get more of these from the bank:<br>'+warnings.join('<br>');
+      a.style.display='block';
+    }else a.style.display='none';
     return warnings;
   }
 
-  function firstTimeOver(total) {
-    if (!book) {
-      return false;
+  function normTime(x){
+    var s=String(x||'');
+    if(/^\d{1,2}:\d{2}\s?(AM|PM)$/i.test(s))return s;
+    var d=new Date(s);
+    return isNaN(d)?s:d.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
+  }
+  function shortDate(key){
+    var s=String(key||'');
+    if(/^\d{1,2}\/\d{1,2}\/\d{4}$/.test(s)){
+      var m=s.split('/');
+      return new Date(Number(m[2]),Number(m[0])-1,Number(m[1])).toLocaleDateString('en-US',{month:'short',day:'numeric'});
     }
-
-    var nowOver =
-      total - APPROVED_BANK >= OWNER_WITHDRAWAL_ALERT;
-
-    var wasOver =
-      Number(book.last.total) -
-      Number(book.wdSinceLast || 0) -
-      APPROVED_BANK >= OWNER_WITHDRAWAL_ALERT;
-
-    return nowOver && !wasOver;
+    var p=s.split('-');
+    if(p.length!==3)return s;
+    return new Date(Number(p[0]),Number(p[1])-1,Number(p[2])).toLocaleDateString('en-US',{month:'short',day:'numeric'});
   }
 
-  function evaluate(total) {
-    var sales = numVal('sales');
-    var takingOver = document.getElementById('takingOver').value;
-    var agreed = document.getElementById('agreed').checked;
+  function loadBook(timeoutMs){
+    var timeout=new Promise(function(res){setTimeout(function(){res('TIMEOUT');},timeoutMs||8000);});
+    var req=fetch(GOOGLE_SHEET_URL+'?t='+Date.now(),{cache:'no-store'})
+      .then(function(r){if(!r.ok)throw new Error('Unable to read the ledger');return r.json();})
+      .catch(function(){return 'ERROR';});
+    return Promise.race([req,timeout]).then(function(p){
+      if(p==='TIMEOUT'||p==='ERROR'||p===null||typeof p!=='object'||p.success===false){connStatus='error';book=null;return null;}
+      if(!p.last){connStatus='empty';book=null;return null;}
+      connStatus='ok';
+      p.wdSinceLast=Number(p.last.withdrawalsSinceCount||0);
+      p.wdSinceTodayOpen=p.todayOpen&&p.todayOpen.submissionId===p.last.submissionId?p.wdSinceLast:Number(p.wdSinceTodayOpen||0);
+      p.last.time=normTime(p.last.time);
+      if(p.todayOpen)p.todayOpen.time=normTime(p.todayOpen.time);
+      if(p.prevClose)p.prevClose.time=normTime(p.prevClose.time);
+      book=p;return p;
+    });
+  }
 
-    var result = {
-      issues: [],
-      expectedText: '',
-      expectedClass: '',
-      needsNote: false,
-      alertOwner: false,
-      expected: null,
-      diff: null,
-      causes: []
-    };
+  function isOpening(){return !book||!book.todayOpen;}
+  function wdSinceAnchor(){
+    if(!book)return 0;
+    return book.todayOpen?Number(book.wdSinceTodayOpen||0):Number(book.wdSinceLast||0);
+  }
 
-    if (book) {
-      var withdrawals = wdSinceAnchor();
+  function cartBaseline(){
+    if(book&&book.lastCart&&isFinite(Number(book.lastCart.count)))return Number(book.lastCart.count);
+    return null;
+  }
+  function cartChange(){
+    var raw=document.getElementById('carts').value;
+    var baseline=cartBaseline();
+    if(raw===''||baseline===null)return null;
+    var n=Number(raw);
+    if(!isFinite(n)||n<0||Math.floor(n)!==n)return null;
+    return {baseline:baseline,count:n,difference:n-baseline};
+  }
 
-      if (isOpening()) {
-        var anchor = book.prevClose || book.last;
-        var expectedOpening = r2(Number(anchor.total) - withdrawals);
-        var openingDifference = r2(total - expectedOpening);
+  /* Carts are reported, never blocking — a stray cart must not cost us a drawer count */
+  function renderCarts(){
+    var baseline=cartBaseline();
+    var change=cartChange();
+    document.getElementById('cartHint').textContent=baseline===null
+      ?'No previous cart count on record.'
+      :'Last recorded: '+baseline+' carts ('+book.lastCart.employee+', '+shortDate(book.lastCart.date)+').';
+    var a=document.getElementById('cartAlert');
+    if(change&&change.difference!==0){
+      a.textContent=(change.difference<0?'Carts down ':'Carts up ')+Math.abs(change.difference)+
+        ' since the last count ('+change.baseline+' to '+change.count+'). Worth a quick look, but you can still submit.';
+      a.style.display='block';
+    }else a.style.display='none';
+  }
 
-        result.expected = expectedOpening;
-        result.diff = openingDifference;
+  function renderPrev(){
+    var b=document.getElementById('prevBox');
+    document.getElementById('shiftLine').textContent='The Oaks Laundry — '+shiftNow()+' count';
+    if(!book){
+      b.innerHTML=connStatus==='error'
+        ?'<b style="color:#c0392b">Can\'t reach the count records.</b> Finish your count and submit, then tell the owner the app could not load the last count.'
+        :'No previous count on record yet. This count will start the log.';
+      return;
+    }
+    var h='';
+    var countToday=Number(book.countToday||0);
+    h+='<b>Counts today: '+countToday+'.</b> '+(countToday>=2?'Minimum reached.':'At least '+(2-countToday)+' more expected.')+'<br>';
+    if(book.prevClose&&isOpening())
+      h+='Last night\'s close: <b>$'+Number(book.prevClose.total).toFixed(2)+'</b> — '+book.prevClose.employee+', '+shortDate(book.prevClose.date)+' '+book.prevClose.time+'<br>';
+    if(book.todayOpen)
+      h+='Opened today: <b>$'+Number(book.todayOpen.total).toFixed(2)+'</b> — '+book.todayOpen.employee+', '+book.todayOpen.time+'<br>';
+    h+='Last count: <b>$'+Number(book.last.total).toFixed(2)+'</b> — '+book.last.employee+', '+(book.last.shift||'Recorded count')+', '+book.last.time;
+    var w=wdSinceAnchor();
+    if(w>0)h+='<br>Owner withdrawals since'+(book.todayOpen?' opening':' the last count')+': <b>$'+w.toFixed(2)+'</b>';
+    if(isOpening())h+='<br>First count of the day — no handoff needed.';
+    b.innerHTML=h;
+  }
 
-        if (Math.abs(openingDifference) <= TOLERANCE) {
-          result.expectedText =
-            'Matches last night\'s close of $' +
-            Number(anchor.total).toFixed(2);
+  function firstTimeOver(total){
+    if(!book)return false;
+    var nowOver=(total-APPROVED_BANK)>=OWNER_WITHDRAWAL_ALERT;
+    var wasOver=(Number(book.last.total)-Number(book.wdSinceLast||0)-APPROVED_BANK)>=OWNER_WITHDRAWAL_ALERT;
+    return nowOver&&!wasOver;
+  }
 
-          result.expectedClass = 'ok';
-        } else {
-          result.issues.push(
-            'OVERNIGHT DIFFERENCE ' + signed(openingDifference)
-          );
+  function evaluate(total){
+    var sales=numVal('sales');
+    var takingOver=document.getElementById('takingOver').value;
+    var agreed=document.getElementById('agreed').checked;
+    var r={issues:[],expectedText:'',expectedClass:'',needsNote:false,alertOwner:false,expected:null,diff:null,causes:[],cartNote:''};
 
-          result.needsNote = true;
-          result.alertOwner = true;
-
-          result.expectedText =
-            'Expected $' +
-            expectedOpening.toFixed(2) +
-            ' from last night\'s close — difference ' +
-            signed(openingDifference);
-
-          result.expectedClass = 'low';
-
-          result.causes.push(
-            openingDifference < 0
-              ? 'Cash left the drawer overnight — a withdrawal was not logged, or last night\'s count was too high.'
-              : 'More cash than last night — last night\'s count was likely too low, or money was added.'
-          );
+    if(book){
+      var w=wdSinceAnchor();
+      if(isOpening()){
+        var anchor=book.prevClose||book.last;
+        var exp1=r2(Number(anchor.total)-w);
+        var gap=r2(total-exp1);
+        r.expected=exp1;r.diff=gap;
+        if(Math.abs(gap)<=TOLERANCE){
+          r.expectedText='Matches last night\'s close of $'+Number(anchor.total).toFixed(2);
+          r.expectedClass='ok';
+        }else{
+          r.issues.push('OVERNIGHT DIFFERENCE '+signed(gap));
+          r.needsNote=true;r.alertOwner=true;
+          r.expectedText='Expected $'+exp1.toFixed(2)+' from last night\'s close — difference '+signed(gap);
+          r.expectedClass='low';
+          r.causes.push(gap<0
+            ?'Cash left the drawer overnight — a withdrawal was not logged, or last night\'s count was too high.'
+            :'More cash than last night — last night\'s count was likely too low, or money was added.');
         }
-      } else if (sales === null) {
-        result.expectedText =
-          'Enter today\'s running cash sales total from Cleantie.';
-      } else {
-        var expectedNow = r2(
-          Number(book.todayOpen.total) +
-          sales -
-          withdrawals
-        );
-
-        var difference = r2(total - expectedNow);
-
-        result.expected = expectedNow;
-        result.diff = difference;
-
-        if (Math.abs(difference) <= TOLERANCE) {
-          result.expectedText =
-            'Expected $' +
-            expectedNow.toFixed(2) +
-            ' — matches';
-
-          result.expectedClass = 'ok';
-        } else {
-          result.issues.push(
-            'DIFFERENCE ' + signed(difference)
-          );
-
-          result.needsNote = true;
-          result.alertOwner = true;
-
-          result.expectedText =
-            'Expected $' +
-            expectedNow.toFixed(2) +
-            ' — difference ' +
-            signed(difference);
-
-          result.expectedClass = 'low';
-
-          var lastSales =
-            book.last.sales === null ||
-            book.last.sales === undefined
-              ? null
-              : Number(book.last.sales);
-
-          if (
-            difference > 0 &&
-            lastSales !== null &&
-            Math.abs(difference - lastSales) <= 0.02
-          ) {
-            result.causes.push(
-              'The sales figure looks like this shift only. Enter Cleantie\'s running total for the entire business day.'
-            );
-          }
-
-          if (
-            difference < 0 &&
-            Math.abs(difference + sales) <= 0.02
-          ) {
-            result.causes.push(
-              'The drawer is short by exactly today\'s sales. The cash may not have entered the drawer, or the sales total may belong to another day.'
-            );
-          }
-
-          if (Math.abs(difference) <= 2) {
-            result.causes.push(
-              'This may be a small counting error. Recount the coins and $1 bills.'
-            );
-          }
-
-          if (difference < 0) {
-            result.causes.push(
-              'Possible unrecorded cash removal, cash refund, or owner withdrawal.'
-            );
-          } else {
-            result.causes.push(
-              'Possible extra cash, card sale recorded as cash, or an understated Cleantie total.'
-            );
-          }
+      }else if(sales===null){
+        r.expectedText='Enter today\'s running cash sales total from Cleantie.';
+      }else{
+        var exp2=r2(Number(book.todayOpen.total)+sales-w);
+        var diff=r2(total-exp2);
+        r.expected=exp2;r.diff=diff;
+        if(Math.abs(diff)<=TOLERANCE){
+          r.expectedText='Expected $'+exp2.toFixed(2)+' — matches';
+          r.expectedClass='ok';
+        }else{
+          r.issues.push('DIFFERENCE '+signed(diff));
+          r.needsNote=true;r.alertOwner=true;
+          r.expectedText='Expected $'+exp2.toFixed(2)+' — difference '+signed(diff);
+          r.expectedClass='low';
+          var lastSales=(book.last.sales===null||book.last.sales===undefined)?null:Number(book.last.sales);
+          if(diff>0&&lastSales!==null&&Math.abs(diff-lastSales)<=0.02)
+            r.causes.push('The sales figure looks like this shift only. Enter Cleantie\'s running total for the entire business day.');
+          if(diff<0&&Math.abs(diff+sales)<=0.02)
+            r.causes.push('The drawer is short by exactly today\'s sales. The cash may not have entered the drawer, or the sales total may belong to another day.');
+          if(Math.abs(diff)<=2)
+            r.causes.push('This may be a small counting error. Recount the coins and $1 bills.');
+          if(diff<0)r.causes.push('Possible unrecorded cash removal, cash refund, or owner withdrawal.');
+          else r.causes.push('Possible extra cash, card sale recorded as cash, or an understated Cleantie total.');
         }
       }
     }
 
-    if (takingOver && !agreed) {
-      result.issues.push('NEXT PERSON DID NOT CONFIRM');
-      result.needsNote = true;
-      result.alertOwner = true;
+    if(!isOpening()&&takingOver&&takingOver!==START_OF_DAY&&!agreed){
+      r.issues.push('NEXT PERSON DID NOT CONFIRM');
+      r.needsNote=true;r.alertOwner=true;
     }
 
-    var carts = cartChange();
-
-    if (carts && carts.difference !== 0) {
-      result.issues.push(
-        (carts.difference < 0 ? 'CART SHORTAGE ' : 'CART INCREASE ') +
-        Math.abs(carts.difference) +
-        ' (' +
-        carts.baseline +
-        ' to ' +
-        carts.count +
-        ')'
-      );
-
-      result.needsNote = true;
-      result.alertOwner = true;
+    var carts=cartChange();
+    if(carts&&carts.difference!==0){
+      r.cartNote=(carts.difference<0?'CARTS DOWN ':'CARTS UP ')+Math.abs(carts.difference)+' ('+carts.baseline+' to '+carts.count+')';
+      r.alertOwner=true;
     }
 
-    return result;
+    return r;
   }
 
-  function calc() {
-    var total = 0;
-    var elements = document.querySelectorAll('[data-val]');
+  function calc(){
+    var total=0;var els=document.querySelectorAll('[data-val]');
+    for(var i=0;i<els.length;i++){
+      var el=els[i];
+      var sub=(parseInt(el.value)||0)*parseFloat(el.dataset.val);
+      total+=sub;
+      document.getElementById('sub_'+el.id).textContent='$'+sub.toFixed(2);
+    }
+    total=r2(total);
+    document.getElementById('total').textContent='$'+total.toFixed(2);
 
-    for (var i = 0; i < elements.length; i++) {
-      var element = elements[i];
-      var subtotal =
-        (parseInt(element.value) || 0) *
-        parseFloat(element.dataset.val);
+    var bankDiff=r2(total-APPROVED_BANK);
+    var s=document.getElementById('status');
+    if(total===0){s.textContent='Start counting';s.className='status';}
+    else if(total<APPROVED_BANK){s.textContent=money(bankDiff)+' under the $'+APPROVED_BANK+' bank';s.className='status low';}
+    else if(bankDiff>0){s.textContent='+'+money(bankDiff)+' above bank';s.className='status ok';}
+    else{s.textContent='Balanced — $'+APPROVED_BANK.toFixed(2);s.className='status ok';}
 
-      total += subtotal;
-
-      document.getElementById('sub_' + element.id).textContent =
-        '$' + subtotal.toFixed(2);
+    var oa=document.getElementById('ownerAlert');
+    var hint=document.getElementById('withdrawHint');
+    if(bankDiff>=OWNER_WITHDRAWAL_ALERT){
+      oa.innerHTML='Drawer is <b>$'+bankDiff.toFixed(2)+'</b> above the $'+APPROVED_BANK.toFixed(2)+' bank — ready for an owner withdrawal.';
+      oa.style.display='block';
+      hint.textContent='Suggested: $'+bankDiff.toFixed(2)+' returns the drawer to $'+APPROVED_BANK.toFixed(2)+'. Record only after an owner physically removes cash.';
+    }else{
+      oa.style.display='none';
+      hint.textContent='Record this only after an owner physically removes cash.';
     }
 
-    total = r2(total);
-
-    document.getElementById('total').textContent =
-      '$' + total.toFixed(2);
-
-    var bankDifference = r2(total - APPROVED_BANK);
-    var status = document.getElementById('status');
-
-    if (total === 0) {
-      status.textContent = 'Start counting';
-      status.className = 'status';
-    } else if (total < APPROVED_BANK) {
-      status.textContent =
-        money(bankDifference) +
-        ' under the $' +
-        APPROVED_BANK +
-        ' bank';
-
-      status.className = 'status low';
-    } else if (bankDifference > 0) {
-      status.textContent =
-        '+' +
-        money(bankDifference) +
-        ' above bank';
-
-      status.className = 'status ok';
-    } else {
-      status.textContent =
-        'Balanced — $' +
-        APPROVED_BANK.toFixed(2);
-
-      status.className = 'status ok';
+    var toEl=document.getElementById('takingOver');
+    var unknown=(connStatus==='error');
+    var hasStart=toEl.options[1]&&toEl.options[1].value===START_OF_DAY;
+    if(unknown&&!hasStart){
+      var o=document.createElement('option');o.text=START_OF_DAY;o.value=START_OF_DAY;
+      toEl.add(o,toEl.options[1]||null);
+    }else if(!unknown&&hasStart){
+      if(toEl.value===START_OF_DAY)toEl.value='';
+      toEl.remove(1);
     }
-
-    var ownerAlert = document.getElementById('ownerAlert');
-    var withdrawalHint = document.getElementById('withdrawHint');
-
-    if (bankDifference >= OWNER_WITHDRAWAL_ALERT) {
-      ownerAlert.innerHTML =
-        'Drawer is <b>$' +
-        bankDifference.toFixed(2) +
-        '</b> above the $' +
-        APPROVED_BANK.toFixed(2) +
-        ' bank — ready for an owner withdrawal.';
-
-      ownerAlert.style.display = 'block';
-
-      withdrawalHint.textContent =
-        'Suggested: $' +
-        bankDifference.toFixed(2) +
-        ' returns the drawer to $' +
-        APPROVED_BANK.toFixed(2) +
-        '. Record only after an owner physically removes cash.';
-    } else {
-      ownerAlert.style.display = 'none';
-
-      withdrawalHint.textContent =
-        'Record this only after an owner physically removes cash.';
-    }
-
-    document.getElementById('agreeWrap').style.display =
-      document.getElementById('takingOver').value
-        ? 'flex'
-        : 'none';
+    var op=unknown?(toEl.value===START_OF_DAY):isOpening();
+    document.getElementById('takingOverField').style.display=(unknown||!isOpening())?'block':'none';
+    if(!unknown&&isOpening())toEl.value='';
+    document.getElementById('agreeWrap').style.display=(!op&&toEl.value)?'flex':'none';
 
     renderCarts();
 
-    var evaluation = evaluate(total);
-    var expected = document.getElementById('expected');
+    var ev=evaluate(total);
+    var ex=document.getElementById('expected');
+    ex.textContent=ev.expectedText;
+    ex.className='expected '+ev.expectedClass;
+    ex.style.display=ev.expectedText?'block':'none';
 
-    expected.textContent = evaluation.expectedText;
-    expected.className = 'expected ' + evaluation.expectedClass;
-    expected.style.display =
-      evaluation.expectedText ? 'block' : 'none';
-
-    var issueAlert = document.getElementById('issueAlert');
-
-    if (evaluation.needsNote) {
-      issueAlert.innerHTML =
-        'Needs a note before submitting:<br>' +
-        evaluation.issues.join('<br>');
-
-      issueAlert.style.display = 'block';
-    } else {
-      issueAlert.style.display = 'none';
-    }
+    var ia=document.getElementById('issueAlert');
+    if(ev.needsNote){
+      ia.innerHTML='Needs a note before submitting:<br>'+ev.issues.join('<br>');
+      ia.style.display='block';
+    }else ia.style.display='none';
 
     checkLowDenoms();
-
-    return {
-      total: total,
-      diff: bankDifference
-    };
+    return {total:total,diff:bankDiff};
   }
 
-  function makeId(prefix) {
-    var date = new Date();
-
-    function pad(number) {
-      return String(number).padStart(2, '0');
-    }
-
-    return prefix +
-      '-' +
-      date.getFullYear() +
-      pad(date.getMonth() + 1) +
-      pad(date.getDate()) +
-      '-' +
-      pad(date.getHours()) +
-      pad(date.getMinutes()) +
-      pad(date.getSeconds()) +
-      '-' +
-      Math.random().toString(36).slice(2, 6).toUpperCase();
+  function makeId(prefix){
+    var d=new Date();
+    function pad(n){return String(n).padStart(2,'0');}
+    return prefix+'-'+d.getFullYear()+pad(d.getMonth()+1)+pad(d.getDate())+'-'+pad(d.getHours())+pad(d.getMinutes())+pad(d.getSeconds())+'-'+Math.random().toString(36).slice(2,6).toUpperCase();
   }
 
-  function post(data) {
-    return fetch(GOOGLE_SHEET_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'text/plain;charset=utf-8'
-      },
-      body: JSON.stringify(data)
-    })
-      .then(function(response) {
-        if (!response.ok) {
-          throw new Error('Script returned HTTP ' + response.status);
-        }
-
-        return response.json();
-      })
-      .then(function(result) {
-        if (!result.success) {
-          throw new Error(
-            result.error || 'Script rejected the submission'
-          );
-        }
-
-        if (result.submissionId !== data.submissionId) {
-          throw new Error(
-            'Script returned the wrong submission ID'
-          );
-        }
-
+  function post(data){
+    return fetch(GOOGLE_SHEET_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(data)})
+      .then(function(r){if(!r.ok)throw new Error('Script returned HTTP '+r.status);return r.json();})
+      .then(function(result){
+        if(!result.success)throw new Error(result.error||'Script rejected the submission');
+        if(result.submissionId!==data.submissionId)throw new Error('Script returned the wrong submission ID');
         return result;
       });
   }
 
-  function stopSubmit(button, message, focusId) {
-    showToast(message, 'error');
-
-    button.disabled = false;
-    button.textContent = 'Submit drawer count';
-
-    if (focusId) {
-      document.getElementById(focusId).focus();
-    }
+  function stopSubmit(button,message,focusId){
+    showToast(message,'error');
+    button.disabled=false;
+    button.textContent='Submit drawer count';
+    if(focusId)document.getElementById(focusId).focus();
   }
 
-  function submitCount() {
-    var employee = document.getElementById('emp').value;
-
-    if (!employee) {
-      showToast('Please select who is counting.', 'error');
-      return;
-    }
-
-    var button = document.getElementById('countBtn');
-    var currentSubmissionId = '';
-
-    button.disabled = true;
-    button.textContent = 'Checking…';
-
-    loadBook(5000)
-      .then(function() {
-        renderPrev();
-
-        if (book && Number(book.countToday) >= 3) {
-          return stopSubmit(
-            button,
-            'Three counts are already recorded for this business day. Ask the owner before adding another.'
-          );
-        }
-
-        var total = calc().total;
-        var evaluation = evaluate(total);
-        var sales = numVal('sales');
-        var note = document.getElementById('note').value.trim();
-        var cartValue = document.getElementById('carts').value;
-
-        if (
-          book &&
-          !isOpening() &&
-          sales === null
-        ) {
-          return stopSubmit(
-            button,
-            'Enter today\'s running cash sales total from Cleantie.',
-            'sales'
-          );
-        }
-
-        if (
-          cartValue === '' ||
-          !Number.isInteger(Number(cartValue)) ||
-          Number(cartValue) < 0
-        ) {
-          return stopSubmit(
-            button,
-            'Enter the whole number of carts you counted.',
-            'carts'
-          );
-        }
-
-        if (evaluation.needsNote && !note) {
-          return stopSubmit(
-            button,
-            'Add a note explaining the difference.',
-            'note'
-          );
-        }
-
-        button.textContent = 'Submitting…';
-
-        var lowWarnings = checkLowDenoms();
-        var date = businessDateStr();
-        var time = currentTimeStr();
-        var id = makeId('CD');
-
-        currentSubmissionId = id;
-
-        var takingOver =
-          document.getElementById('takingOver').value;
-
-        var agreed =
-          document.getElementById('agreed').checked;
-
-        var withdrawals = wdSinceAnchor();
-        var crossedOver = firstTimeOver(total);
-
-        var expectedValue =
-          evaluation.expected === null ||
-          evaluation.expected === undefined
-            ? ''
-            : evaluation.expected;
-
-        var differenceValue =
-          evaluation.diff === null ||
-          evaluation.diff === undefined
-            ? ''
-            : evaluation.diff;
-
-        var denominationData = {};
-        var denominationLines = [];
-        var allItems = bills.concat(coins);
-
-        for (var i = 0; i < allItems.length; i++) {
-          var item = allItems[i];
-
-          var quantity =
-            parseInt(
-              document.getElementById(
-                'd_' + item.label.replace(/\W/g, '')
-              ).value
-            ) || 0;
-
-          denominationData[item.label] = quantity;
-
-          if (quantity > 0) {
-            denominationLines.push(
-              item.label +
-              ' x ' +
-              quantity +
-              ' = $' +
-              (quantity * item.val).toFixed(2)
-            );
-          }
-        }
-
-        var bankDifference = r2(total - APPROVED_BANK);
-
-        var statusText =
-          total < APPROVED_BANK
-            ? 'SHORT — ' + money(bankDifference)
-            : (
-                bankDifference > 0
-                  ? 'ABOVE BANK +' + money(bankDifference)
-                  : 'BALANCED'
-              );
-
-        if (evaluation.issues.length) {
-          statusText +=
-            ' | ' +
-            evaluation.issues.join(' | ');
-        }
-
-        /*
-         * The server is authoritative. It will assign Shift 1,
-         * Shift 2, or Shift 3 according to the number of counts
-         * already saved for this business day.
-         */
-        var predictedShift =
-          book && book.nextShift
-            ? book.nextShift
-            : 'Automatic';
-
-        var sheetPromise = post({
-          action: 'count',
-          submissionId: id,
-          date: date,
-          time: time,
-          employee: employee,
-          shift: predictedShift,
-          total: total.toFixed(2),
-          status: statusText,
-
-          hundreds:
-            denominationData['$100 bills'] || 0,
-
-          fifties:
-            denominationData['$50 bills'] || 0,
-
-          twenties:
-            denominationData['$20 bills'] || 0,
-
-          tens:
-            denominationData['$10 bills'] || 0,
-
-          fives:
-            denominationData['$5 bills'] || 0,
-
-          ones:
-            denominationData['$1 bills'] || 0,
-
-          quarters:
-            denominationData['Quarters'] || 0,
-
-          dimes:
-            denominationData['Dimes'] || 0,
-
-          nickels:
-            denominationData['Nickels'] || 0,
-
-          pennies:
-            denominationData['Pennies'] || 0,
-
-          sales:
-            sales === null ? '' : sales,
-
-          expected: expectedValue,
-          difference: differenceValue,
-          withdrawalsSinceCount: withdrawals,
-          carts: cartValue,
-          takingOver: takingOver,
-
-          agreed:
-            takingOver
-              ? (agreed ? 'Yes' : 'No')
-              : '',
-
-          note: note
-        });
-
-        var needsAlert =
-          total < APPROVED_BANK ||
-          lowWarnings.length > 0 ||
-          evaluation.alertOwner ||
-          crossedOver;
-
-        var emailBody = '';
-
-        if (evaluation.issues.length) {
-          emailBody +=
-            evaluation.issues.join('\n') +
-            '\n\n';
-        }
-
-        if (book) {
-          if (book.prevClose) {
-            emailBody +=
-              'Last night close   $' +
-              Number(book.prevClose.total).toFixed(2) +
-              '   ' +
-              book.prevClose.employee +
-              ', ' +
-              shortDate(book.prevClose.date) +
-              ' ' +
-              book.prevClose.time +
-              '\n';
-          }
-
-          if (book.todayOpen) {
-            emailBody +=
-              'Opened today       $' +
-              Number(book.todayOpen.total).toFixed(2) +
-              '   ' +
-              book.todayOpen.employee +
-              ', ' +
-              book.todayOpen.time +
-              '\n';
-          }
-
-          if (book.todayOpen && book.prevClose) {
-            emailBody +=
-              'Overnight change   ' +
-              signed(
-                r2(
-                  Number(book.todayOpen.total) -
-                  Number(book.prevClose.total)
-                )
-              ) +
-              '\n';
-          }
-
-          if (sales !== null) {
-            emailBody +=
-              'Cash sales today  +$' +
-              Number(sales).toFixed(2) +
-              '   (Cleantie running total)\n';
-          }
-
-          if (withdrawals > 0) {
-            emailBody +=
-              'Owner withdrawals  -$' +
-              withdrawals.toFixed(2) +
-              '\n';
-          }
-
-          if (
-            evaluation.expected !== null &&
-            evaluation.expected !== undefined
-          ) {
-            emailBody +=
-              'Expected now       $' +
-              Number(evaluation.expected).toFixed(2) +
-              '\n';
-          }
-        }
-
-        emailBody +=
-          'Counted now        $' +
-          total.toFixed(2) +
-          '   ' +
-          employee +
-          ', {SHIFT} ' +
-          time +
-          '\n';
-
-        if (
-          evaluation.diff !== null &&
-          evaluation.diff !== undefined &&
-          Math.abs(evaluation.diff) > TOLERANCE
-        ) {
-          emailBody +=
-            'DIFFERENCE         ' +
-            signed(evaluation.diff) +
-            '\n';
-        }
-
-        if (evaluation.causes.length) {
-          emailBody +=
-            '\nLikely cause:\n- ' +
-            evaluation.causes.join('\n- ') +
-            '\n';
-        }
-
-        if (note) {
-          emailBody +=
-            '\nStaff note: ' +
-            note +
-            '\n';
-        }
-
-        if (takingOver) {
-          emailBody +=
-            'Handed to: ' +
-            takingOver +
-            (agreed ? ' (confirmed)' : ' (DID NOT CONFIRM)') +
-            '\n';
-        }
-
-        emailBody +=
-          'Carts counted: ' +
-          cartValue +
-          (
-            cartBaseline() !== null
-              ? ' (last recorded ' + cartBaseline() + ')'
-              : ' (previous count unavailable)'
-          ) +
-          '\n';
-
-        if (crossedOver) {
-          emailBody +=
-            '\nDrawer is $' +
-            bankDifference.toFixed(2) +
-            ' over the bank — ready for a withdrawal.\n';
-        }
-
-        if (lowWarnings.length) {
-          emailBody +=
-            '\nRunning low on change: ' +
-            lowWarnings.join(', ') +
-            '\n';
-        }
-
-        emailBody +=
-          '\nDenominations:\n' +
-          denominationLines.join('\n') +
-          '\n\nID: ' +
-          id;
-
-        var tag =
-          evaluation.issues.length
-            ? evaluation.issues[0]
-                .split(' ')
-                .slice(0, 2)
-                .join(' ')
-            : (
-                total < APPROVED_BANK
-                  ? 'Drawer Short'
-                  : (
-                      crossedOver
-                        ? 'Drawer $100+ Over Bank'
-                        : 'Low Change'
-                    )
-              );
-
-        function sendAlert(shiftName) {
-          if (!needsAlert || !window.emailjs) {
-            return Promise.resolve();
-          }
-
-          return emailjs.send(
-            EMAILJS_SERVICE_ID,
-            EMAILJS_TEMPLATE_ID,
-            {
-              to_email: OWNER_EMAIL,
-
-              subject:
-                tag +
-                ' — ' +
-                employee +
-                ' — ' +
-                shortDate(date) +
-                ' ' +
-                time,
-
-              employee: employee,
-              shift: shiftName,
-              timestamp: date + ' ' + time,
-              total: '$' + total.toFixed(2),
-              approved: '$' + APPROVED_BANK.toFixed(2),
-              difference: statusText,
-
-              breakdown:
-                emailBody.replace(
-                  '{SHIFT}',
-                  shiftName
-                )
-            }
-          );
-        }
-
-        return sheetPromise.then(function(result) {
-          var savedShift =
-            result.assignedShift ||
-            predictedShift;
-
-          showToast(
-            savedShift +
-            ' saved in sheet row ' +
-            result.row +
-            ' — ' +
-            id,
-            'success'
-          );
-
-          button.textContent = 'Saved';
-
-          return sendAlert(savedShift)
-            .catch(function(error) {
-              console.error(
-                'Alert email failed',
-                error
-              );
-
-              showToast(
-                'Count saved in the sheet — ' +
-                id +
-                '. Alert email failed.',
-                'success'
-              );
-            });
-        });
-      })
-      .catch(function(error) {
-        console.error(error);
-
-        showToast(
-          'Count NOT saved: ' +
-          (
-            error && error.message
-              ? error.message
-              : 'Unknown error'
-          ) +
-          '. Keep the count and tell the owner. ID: ' +
-          (currentSubmissionId || 'unknown'),
-          'error'
-        );
-
-        button.disabled = false;
-        button.textContent = 'Submit drawer count';
+  function submitCount(){
+    var employee=document.getElementById('emp').value;
+    if(!employee){showToast('Please select who is counting.','error');return;}
+
+    var button=document.getElementById('countBtn');
+    var currentSubmissionId='';
+    button.disabled=true;
+    button.textContent='Checking…';
+
+    loadBook(5000).then(function(){
+      renderPrev();
+
+      var total=calc().total;
+      var ev=evaluate(total);
+      var sales=numVal('sales');
+      var note=document.getElementById('note').value.trim();
+      var cartValue=document.getElementById('carts').value;
+
+      if(book&&!isOpening()&&sales===null)
+        return stopSubmit(button,'Enter today\'s running cash sales total from Cleantie.','sales');
+
+      if(cartValue===''||!isFinite(Number(cartValue))||Number(cartValue)<0||Math.floor(Number(cartValue))!==Number(cartValue))
+        return stopSubmit(button,'Enter the whole number of carts you counted.','carts');
+
+      if(ev.needsNote&&!note)
+        return stopSubmit(button,'Add a note explaining the difference.','note');
+
+      button.textContent='Submitting…';
+
+      var lowWarnings=checkLowDenoms();
+      var date=businessDateStr();
+      var time=currentTimeStr();
+      var shiftName=shiftNow();
+      var id=makeId('CD');
+      currentSubmissionId=id;
+
+      var toVal=document.getElementById('takingOver').value;
+      var takingOver=(isOpening()||toVal===START_OF_DAY)?'':toVal;
+      var agreed=document.getElementById('agreed').checked;
+      var w=wdSinceAnchor();
+      var crossedOver=firstTimeOver(total);
+
+      var expectedValue=(ev.expected===null||ev.expected===undefined)?'':ev.expected;
+      var differenceValue=(ev.diff===null||ev.diff===undefined)?'':ev.diff;
+
+      var denomData={};var lines=[];var allItems=bills.concat(coins);
+      for(var i=0;i<allItems.length;i++){
+        var item=allItems[i];
+        var qty=parseInt(document.getElementById('d_'+item.label.replace(/\W/g,'')).value)||0;
+        denomData[item.label]=qty;
+        if(qty>0)lines.push(item.label+' x '+qty+' = $'+(qty*item.val).toFixed(2));
+      }
+
+      var bankDiff=r2(total-APPROVED_BANK);
+      var statusText=total<APPROVED_BANK?'SHORT — '+money(bankDiff):(bankDiff>0?'ABOVE BANK +'+money(bankDiff):'BALANCED');
+      if(ev.issues.length)statusText+=' | '+ev.issues.join(' | ');
+
+      var sheetPromise=post({
+        action:'count',submissionId:id,date:date,time:time,employee:employee,shift:shiftName,
+        total:total.toFixed(2),status:statusText,
+        hundreds:denomData['$100 bills']||0,
+        fifties:denomData['$50 bills']||0,
+        twenties:denomData['$20 bills']||0,
+        tens:denomData['$10 bills']||0,
+        fives:denomData['$5 bills']||0,
+        ones:denomData['$1 bills']||0,
+        quarters:denomData['Quarters']||0,
+        dimes:denomData['Dimes']||0,
+        nickels:denomData['Nickels']||0,
+        pennies:denomData['Pennies']||0,
+        sales:(sales===null?'':sales),
+        expected:expectedValue,
+        difference:differenceValue,
+        withdrawalsSinceCount:w,
+        carts:cartValue,
+        takingOver:takingOver,
+        agreed:(takingOver?(agreed?'Yes':'No'):''),
+        note:note
       });
-  }
 
-  function submitWithdrawal() {
-    var owner =
-      document.getElementById('withdrawOwner').value;
+      var needsAlert=total<APPROVED_BANK||lowWarnings.length>0||ev.alertOwner||crossedOver;
 
-    var amount =
-      numVal('withdrawAmount');
+      var body='';
+      if(ev.issues.length)body+=ev.issues.join('\n')+'\n\n';
+      if(book){
+        if(book.prevClose)body+='Last night close   $'+Number(book.prevClose.total).toFixed(2)+'   '+book.prevClose.employee+', '+shortDate(book.prevClose.date)+' '+book.prevClose.time+'\n';
+        if(book.todayOpen)body+='Opened today       $'+Number(book.todayOpen.total).toFixed(2)+'   '+book.todayOpen.employee+', '+book.todayOpen.time+'\n';
+        if(book.todayOpen&&book.prevClose)body+='Overnight change   '+signed(r2(Number(book.todayOpen.total)-Number(book.prevClose.total)))+'\n';
+        if(sales!==null)body+='Cash sales today  +$'+Number(sales).toFixed(2)+'   (Cleantie running total)\n';
+        if(w>0)body+='Owner withdrawals  -$'+w.toFixed(2)+'\n';
+        if(ev.expected!==null&&ev.expected!==undefined)body+='Expected now       $'+Number(ev.expected).toFixed(2)+'\n';
+      }
+      body+='Counted now        $'+total.toFixed(2)+'   '+employee+', '+shiftName+' '+time+'\n';
+      if(ev.diff!==null&&ev.diff!==undefined&&Math.abs(ev.diff)>TOLERANCE)body+='DIFFERENCE         '+signed(ev.diff)+'\n';
+      if(ev.causes.length)body+='\nLikely cause:\n- '+ev.causes.join('\n- ')+'\n';
+      if(note)body+='\nStaff note: '+note+'\n';
+      if(takingOver)body+='Handed to: '+takingOver+(agreed?' (confirmed)':' (DID NOT CONFIRM)')+'\n';
+      body+='Carts: '+cartValue+(cartBaseline()!==null?' (last recorded '+cartBaseline()+')':' (no previous count)')+'\n';
+      if(ev.cartNote)body+=ev.cartNote+'\n';
+      if(crossedOver)body+='\nDrawer is $'+bankDiff.toFixed(2)+' over the bank — ready for a withdrawal. No further emails about this until it drops back under.\n';
+      if(lowWarnings.length)body+='\nRunning low on change: '+lowWarnings.join(', ')+'\n';
+      body+='\nDenominations:\n'+lines.join('\n')+'\n\nID: '+id;
 
-    var button =
-      document.getElementById('withdrawBtn');
+      var tag=ev.issues.length
+        ?ev.issues[0].split(' ').slice(0,2).join(' ')
+        :(total<APPROVED_BANK?'Drawer Short':(crossedOver?'Drawer $100+ Over Bank':(ev.cartNote?'Cart Count Changed':'Low Change')));
 
-    if (!owner) {
-      showToast(
-        'Select Hamid, Raihana, or Mina.',
-        'error'
-      );
-      return;
-    }
-
-    if (amount === null || amount <= 0) {
-      showToast(
-        'Enter the amount physically removed.',
-        'error'
-      );
-      return;
-    }
-
-    button.disabled = true;
-    button.textContent = 'Recording…';
-
-    loadBook()
-      .then(function(loadedBook) {
-        var last =
-          loadedBook
-            ? loadedBook.last
-            : null;
-
-        if (!last) {
-          showToast(
-            'Submit a drawer count before recording a withdrawal.',
-            'error'
-          );
-
-          button.disabled = false;
-          button.textContent = 'Record owner withdrawal';
-          return;
-        }
-
-        var date = todayStr();
-        var time = currentTimeStr();
-        var id = makeId('OW');
-
-        var priorWithdrawals =
-          Number(loadedBook.wdSinceLast || 0);
-
-        var available = Math.max(
-          0,
-          r2(
-            Number(last.total) -
-            APPROVED_BANK -
-            priorWithdrawals
-          )
-        );
-
-        var sheetPromise = post({
-          action: 'ownerWithdrawal',
-          submissionId: id,
-          date: date,
-          time: time,
-          owner: owner,
-          amount: amount,
-          relatedCountId: last.submissionId || '',
-          priorCountTotal: Number(last.total),
-          priorWithdrawals: priorWithdrawals,
-          availableAboveBank: available
+      function sendAlert(){
+        if(!needsAlert||!window.emailjs)return Promise.resolve();
+        return emailjs.send(EMAILJS_SERVICE_ID,EMAILJS_TEMPLATE_ID,{
+          to_email:OWNER_EMAIL,
+          subject:tag+' — '+shiftName+' — '+employee+' — '+shortDate(date)+' '+time,
+          employee:employee,
+          shift:shiftName,
+          timestamp:date+' '+time,
+          total:'$'+total.toFixed(2),
+          approved:'$'+APPROVED_BANK.toFixed(2),
+          difference:statusText,
+          breakdown:body
         });
+      }
 
-        var emailPromise = window.emailjs
-          ? emailjs.send(
-              EMAILJS_SERVICE_ID,
-              EMAILJS_TEMPLATE_ID,
-              {
-                to_email: OWNER_EMAIL,
-
-                subject:
-                  'Owner Withdrawal $' +
-                  amount.toFixed(2) +
-                  ' — ' +
-                  owner +
-                  ' — ' +
-                  date +
-                  ' ' +
-                  time,
-
-                employee: owner,
-                shift: 'Owner Withdrawal',
-                timestamp: date + ' ' + time,
-                total: '$' + amount.toFixed(2),
-                approved: '$' + APPROVED_BANK.toFixed(2),
-                difference: 'OWNER WITHDRAWAL',
-
-                breakdown:
-                  'OWNER WITHDRAWAL LOGGED\n' +
-                  'Owner: ' +
-                  owner +
-                  '\nAmount: $' +
-                  amount.toFixed(2) +
-                  '\nTime: ' +
-                  date +
-                  ' ' +
-                  time +
-                  '\nLast drawer count: $' +
-                  Number(last.total).toFixed(2) +
-                  ' by ' +
-                  last.employee +
-                  (
-                    priorWithdrawals > 0
-                      ? '\nEarlier withdrawals since that count: $' +
-                        priorWithdrawals.toFixed(2)
-                      : ''
-                  ) +
-                  '\nWithdrawal ID: ' +
-                  id +
-                  '\n\nIf this was not you, look into it.'
-              }
-            )
-          : Promise.resolve();
-
-        return Promise.all([
-          sheetPromise,
-          emailPromise
-        ])
-          .then(function() {
-            document.getElementById('withdrawAmount').value = '';
-            document.getElementById('withdrawOwner').value = '';
-
-            showToast(
-              'Owner withdrawal recorded — ' +
-              id,
-              'success'
-            );
-
-            button.disabled = false;
-            button.textContent = 'Record owner withdrawal';
-
-            return loadBook();
-          })
-          .then(function() {
-            renderPrev();
-            calc();
-          });
-      })
-      .catch(function(error) {
-        console.error(error);
-
-        showToast(
-          'Owner withdrawal submission error: ' +
-          (
-            error && error.message
-              ? error.message
-              : 'Unknown error'
-          ),
-          'error'
-        );
-
-        button.disabled = false;
-        button.textContent = 'Record owner withdrawal';
+      return sheetPromise.then(function(result){
+        showToast((result.assignedShift||shiftName)+' count saved in row '+result.row+' — '+id,'success');
+        button.textContent='Saved';
+        return sendAlert().catch(function(error){
+          console.error('Alert email failed',error);
+          showToast('Count saved in the sheet — '+id+'. Alert email failed.','success');
+        });
       });
+    }).catch(function(error){
+      console.error(error);
+      showToast('Count NOT saved: '+(error&&error.message?error.message:'Unknown error')+'. Keep the count and tell the owner. ID: '+(currentSubmissionId||'unknown'),'error');
+      button.disabled=false;
+      button.textContent='Submit drawer count';
+    });
   }
 
-  function showToast(message, type) {
-    var toast = document.getElementById('toast');
+  function submitWithdrawal(){
+    var owner=document.getElementById('withdrawOwner').value;
+    var amount=numVal('withdrawAmount');
+    var button=document.getElementById('withdrawBtn');
 
-    toast.textContent = message;
-    toast.className = 'toast ' + type;
+    if(!owner){showToast('Select Hamid, Raihana, or Mina.','error');return;}
+    if(amount===null||amount<=0){showToast('Enter the amount physically removed.','error');return;}
+
+    button.disabled=true;
+    button.textContent='Recording…';
+
+    loadBook().then(function(bk){
+      var last=bk?bk.last:null;
+      if(!last){
+        showToast('Submit a drawer count before recording a withdrawal.','error');
+        button.disabled=false;
+        button.textContent='Record owner withdrawal';
+        return;
+      }
+
+      var date=businessDateStr();
+      var time=currentTimeStr();
+      var id=makeId('OW');
+      var priorW=Number(bk.wdSinceLast||0);
+      var available=Math.max(0,r2(Number(last.total)-APPROVED_BANK-priorW));
+
+      var sheetPromise=post({
+        action:'ownerWithdrawal',submissionId:id,date:date,time:time,owner:owner,amount:amount,
+        relatedCountId:last.submissionId||'',
+        priorCountTotal:Number(last.total),
+        priorWithdrawals:priorW,
+        availableAboveBank:available
+      });
+
+      var emailPromise=window.emailjs?emailjs.send(EMAILJS_SERVICE_ID,EMAILJS_TEMPLATE_ID,{
+        to_email:OWNER_EMAIL,
+        subject:'Owner Withdrawal $'+amount.toFixed(2)+' — '+owner+' — '+date+' '+time,
+        employee:owner,
+        shift:'Owner Withdrawal',
+        timestamp:date+' '+time,
+        total:'$'+amount.toFixed(2),
+        approved:'$'+APPROVED_BANK.toFixed(2),
+        difference:'OWNER WITHDRAWAL',
+        breakdown:'OWNER WITHDRAWAL LOGGED\nOwner: '+owner+'\nAmount: $'+amount.toFixed(2)+'\nTime: '+date+' '+time+
+          '\nLast drawer count: $'+Number(last.total).toFixed(2)+' by '+last.employee+
+          (priorW>0?'\nEarlier withdrawals since that count: $'+priorW.toFixed(2):'')+
+          '\nWithdrawal ID: '+id+'\n\nIf this was not you, look into it.'
+      }):Promise.resolve();
+
+      return Promise.all([sheetPromise,emailPromise]).then(function(){
+        document.getElementById('withdrawAmount').value='';
+        document.getElementById('withdrawOwner').value='';
+        showToast('Owner withdrawal recorded — '+id,'success');
+        button.disabled=false;
+        button.textContent='Record owner withdrawal';
+        return loadBook();
+      }).then(function(){renderPrev();calc();});
+    }).catch(function(error){
+      console.error(error);
+      showToast('Owner withdrawal submission error: '+(error&&error.message?error.message:'Unknown error'),'error');
+      button.disabled=false;
+      button.textContent='Record owner withdrawal';
+    });
   }
 
-  loadBook().then(function() {
-    renderPrev();
-    calc();
-  });
+  function showToast(message,type){
+    var toast=document.getElementById('toast');
+    toast.textContent=message;
+    toast.className='toast '+type;
+  }
 
+  loadBook().then(function(){renderPrev();calc();});
+  renderPrev();
   calc();
 </script>
 </body>
 </html>
+```

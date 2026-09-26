@@ -1,712 +1,2257 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Cash Drawer Count — The Oaks Laundry</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<title>Oaks Inventory Tracker</title>
+
 <style>
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f2f2f0; min-height: 100vh; padding: 1.5rem 1rem 3rem; }
-  .card { background: #fff; border-radius: 14px; max-width: 480px; margin: 0 auto; overflow: hidden; box-shadow: 0 2px 12px rgba(0,0,0,0.08); }
-  .card-header { background: #1a1a2e; padding: 1.25rem 1.5rem; }
-  .card-header h1 { color: #fff; font-size: 20px; font-weight: 600; }
-  .card-header p { color: #8888aa; font-size: 13px; margin-top: 3px; }
-  .section { padding: 1rem 1.5rem 0; }
-  .section-label { font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #aaa; margin-bottom: 8px; }
-  .field { margin-bottom: 10px; }
-  .field label { display: block; font-size: 13px; color: #555; margin-bottom: 4px; font-weight: 500; }
-  .field .hint { font-size: 11px; color: #999; margin-top: 3px; }
-  select, .money, textarea, .num { width: 100%; height: 42px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; padding: 0 12px; color: #1a1a2e; background: #fff; }
-  textarea { height: 70px; padding: 10px 12px; font-family: inherit; resize: vertical; }
-  .row2 { display: flex; gap: 10px; }
-  .row2 .field { flex: 1; }
-  .check { display: flex; align-items: center; gap: 10px; font-size: 14px; color: #1a1a2e; padding: 6px 0; }
-  .check input { width: 20px; height: 20px; }
-  .prev-box { background: #f4f6fb; border-radius: 8px; padding: 10px 14px; margin: 1rem 1.5rem 0; font-size: 13px; color: #445; line-height: 1.45; }
-  .denom-row { display: flex; align-items: center; padding: 9px 0; border-bottom: 1px solid #f0f0f0; gap: 10px; }
-  .denom-row:last-child { border-bottom: none; }
-  .denom-name { flex: 1; font-size: 15px; color: #1a1a2e; font-weight: 500; }
-  .qty-controls { display: flex; align-items: center; gap: 6px; }
-  .qty-controls button { width: 30px; height: 30px; border-radius: 8px; border: 1px solid #ddd; background: #f7f7f7; font-size: 18px; cursor: pointer; }
-  .qty-controls input { width: 52px; height: 30px; border: 1px solid #ddd; border-radius: 8px; text-align: center; font-size: 14px; }
-  .denom-sub { min-width: 60px; text-align: right; font-size: 13px; color: #888; }
-  .total-card { background: #f7f7f5; border-radius: 10px; padding: 1rem 1.25rem; margin: 1.25rem 1.5rem 0.5rem; }
-  .total-top { display: flex; justify-content: space-between; align-items: center; }
-  .total-lbl { font-size: 12px; color: #888; text-transform: uppercase; letter-spacing: 0.06em; font-weight: 500; }
-  .total-amt { font-size: 30px; font-weight: 700; color: #1a1a2e; }
-  .status { font-size: 13px; margin-top: 4px; font-weight: 500; }
-  .status.ok, .expected.ok { color: #2d8a4e; }
-  .status.low, .expected.low { color: #c0392b; }
-  .expected { font-size: 13px; margin-top: 8px; padding-top: 8px; border-top: 1px solid #e6e6e2; color: #555; }
-  .owner-alert { background: #fff7e6; color: #9a5b00; border-radius: 8px; padding: 12px 14px; margin: 0.5rem 1.5rem; font-size: 13px; font-weight: 600; display: none; }
-  .note-alert { background: #f4f6fb; color: #445; border-radius: 8px; padding: 10px 14px; margin: 0.5rem 1.5rem; font-size: 13px; font-weight: 500; display: none; }
-  .low-alert, .issue-alert { background: #fdf0f0; border-radius: 8px; padding: 10px 14px; margin: 0.5rem 1.5rem; font-size: 13px; color: #c0392b; font-weight: 500; display: none; }
-  .withdraw-box { border-top: 1px solid #ebebeb; margin-top: 1rem; padding-bottom: 1rem; }
-  .submit-wrap { padding: 0.75rem 1.5rem 1.5rem; }
-  .submit-btn { width: 100%; padding: 13px; border: none; border-radius: 10px; background: #1a1a2e; color: #fff; font-size: 15px; font-weight: 600; cursor: pointer; }
-  .submit-btn.secondary { background: #fff; color: #1a1a2e; border: 1.5px solid #1a1a2e; }
-  .submit-btn:disabled { background: #aaa; color: #fff; border-color: #aaa; cursor: not-allowed; }
-  .toast { display: none; margin: 0 1.5rem 1.5rem; padding: 12px 14px; border-radius: 8px; font-size: 14px; font-weight: 500; }
-  .toast.success { background: #eafaf1; color: #1e7e45; display: block; }
-  .toast.error { background: #fdf0f0; color: #c0392b; display: block; }
 
-  @media (max-width: 420px) {
-    body { padding: 0; }
-    .card { border-radius: 0; min-height: 100vh; }
-    .row2 { display: block; }
+:root{
+  font-family:Arial,sans-serif;
+  color:#18212e;
+  background:#f7f9fc;
+  font-size:24px;
+}
+
+*{
+  box-sizing:border-box;
+}
+
+html{
+  -webkit-text-size-adjust:100%;
+  text-size-adjust:100%;
+}
+
+body{
+  margin:0;
+  line-height:1.42;
+  font-size:24px;
+}
+
+header{
+  background:#17365d;
+  color:white;
+  padding:18px 16px;
+}
+
+h1{
+  font-size:32px;
+  line-height:1.15;
+  margin:0;
+}
+
+header p{
+  font-size:19px;
+  margin:6px 0 0;
+  opacity:.9;
+}
+
+nav{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+  background:white;
+  padding:10px;
+  position:sticky;
+  top:0;
+  z-index:10;
+  border-bottom:1px solid #d9e2f3;
+}
+
+button{
+  cursor:pointer;
+  border:0;
+  border-radius:14px;
+  min-height:64px;
+  padding:15px 12px;
+  font-size:21px;
+  font-weight:700;
+  background:#eaf0f7;
+  color:#17365d;
+}
+
+button.active,
+.primary{
+  background:#1f4e78;
+  color:white;
+}
+
+.danger{
+  background:#b42323;
+  color:white;
+  min-height:56px;
+  padding:12px 16px;
+  font-size:19px;
+}
+
+.toggle{
+  min-height:56px;
+  font-size:19px;
+  padding:12px 16px;
+  margin-bottom:14px;
+}
+
+main{
+  width:100%;
+  max-width:760px;
+  margin:auto;
+  padding:12px;
+}
+
+.page{
+  display:none;
+}
+
+.page.active{
+  display:block;
+}
+
+.card{
+  width:100%;
+  background:white;
+  border:1px solid #d9e2f3;
+  border-radius:16px;
+  padding:18px 14px;
+  margin-bottom:16px;
+}
+
+h2{
+  color:#17365d;
+  font-size:29px;
+  line-height:1.15;
+  margin:0 0 16px;
+}
+
+.small{
+  font-size:19px;
+  line-height:1.5;
+  color:#596675;
+}
+
+.row{
+  display:grid;
+  grid-template-columns:1fr;
+  gap:0;
+}
+
+label{
+  display:block;
+  font-size:22px;
+  font-weight:700;
+  margin:20px 0 8px;
+}
+
+input,
+select,
+textarea{
+  display:block;
+  width:100%;
+  min-height:68px;
+  font-family:Arial,sans-serif;
+  font-size:23px;
+  border:2px solid #aebbc9;
+  border-radius:14px;
+  padding:15px;
+  background:white;
+  color:#18212e;
+}
+
+select{
+  min-height:70px;
+}
+
+input[type="number"]{
+  font-size:26px;
+  font-weight:600;
+}
+
+input[type="date"]{
+  font-size:22px;
+}
+
+textarea{
+  min-height:115px;
+}
+
+.wide{
+  width:100%;
+  min-height:70px;
+  margin-top:22px;
+  font-size:23px;
+}
+
+#message{
+  margin:0;
+  padding:15px 16px;
+  font-size:20px;
+  line-height:1.4;
+  display:none;
+}
+
+a{
+  color:#1f4e78;
+  font-size:20px;
+  overflow-wrap:anywhere;
+}
+
+.scroll{
+  overflow:visible;
+}
+
+table,
+thead,
+tbody,
+tr,
+th,
+td{
+  display:block;
+}
+
+table{
+  width:100%;
+}
+
+thead{
+  display:none;
+}
+
+tbody{
+  display:grid;
+  gap:14px;
+}
+
+tr{
+  width:100%;
+  border:2px solid #d9e2f3;
+  border-radius:15px;
+  background:white;
+  padding:12px 14px;
+}
+
+td{
+  display:grid;
+  grid-template-columns:115px minmax(0,1fr);
+  gap:12px;
+  width:100%;
+  padding:11px 0;
+  border:0;
+  border-bottom:1px solid #e8edf4;
+  font-size:20px;
+  line-height:1.4;
+  white-space:normal;
+  overflow-wrap:anywhere;
+}
+
+td:last-child{
+  border-bottom:0;
+}
+
+td::before{
+  content:attr(data-label);
+  font-size:18px;
+  font-weight:700;
+  color:#596675;
+}
+
+#buyRows td:nth-child(2){
+  display:block;
+  font-size:25px;
+  font-weight:700;
+  color:#17365d;
+  padding-bottom:14px;
+}
+
+#buyRows td:nth-child(2)::before{
+  display:block;
+  margin-bottom:4px;
+}
+
+#buyRows td:nth-child(5),
+#buyRows td:nth-child(7),
+#buyRows td:nth-child(10){
+  font-size:22px;
+  font-weight:700;
+}
+
+#historyRows td:nth-child(4){
+  display:block;
+  font-size:24px;
+  font-weight:700;
+  color:#17365d;
+}
+
+.empty{
+  padding:18px;
+  font-size:20px;
+  color:#596675;
+  text-align:center;
+}
+
+
+@media (min-width:700px){
+
+  :root{
+    font-size:18px;
   }
+
+  body{
+    font-size:18px;
+  }
+
+  nav{
+    grid-template-columns:repeat(4,1fr);
+  }
+
+  .row{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:12px;
+  }
+
+  table{
+    display:table;
+    border-collapse:collapse;
+  }
+
+  thead{
+    display:table-header-group;
+  }
+
+  tbody{
+    display:table-row-group;
+  }
+
+  tr{
+    display:table-row;
+    border:0;
+    padding:0;
+  }
+
+  th,
+  td{
+    display:table-cell;
+    padding:10px;
+    border-bottom:1px solid #e8edf4;
+    font-size:16px;
+  }
+
+  th{
+    background:#1f4e78;
+    color:white;
+    text-align:left;
+  }
+
+  td::before{
+    display:none;
+  }
+
+  #buyRows td:nth-child(2),
+  #historyRows td:nth-child(4){
+    display:table-cell;
+    font-size:16px;
+    font-weight:normal;
+    color:inherit;
+  }
+}
+
+
+@media (max-width:390px){
+
+  body{
+    font-size:23px;
+  }
+
+  h1{
+    font-size:30px;
+  }
+
+  h2{
+    font-size:28px;
+  }
+
+  button{
+    font-size:20px;
+  }
+
+  input,
+  select,
+  textarea{
+    font-size:22px;
+  }
+
+  td{
+    grid-template-columns:105px minmax(0,1fr);
+  }
+}
+
+
+@media (max-width:340px){
+
+  nav{
+    grid-template-columns:1fr;
+  }
+
+  td{
+    grid-template-columns:1fr;
+    gap:4px;
+  }
+
+  td::before{
+    margin-bottom:2px;
+  }
+}
+
 </style>
+
 </head>
+
+
 <body>
-<div class="card">
-  <div class="card-header">
-    <h1>Cash drawer count</h1>
-    <p id="shiftLine">The Oaks Laundry</p>
-  </div>
 
-  <div class="prev-box" id="prevBox">Loading last count…</div>
 
-  <div class="section">
-    <div class="section-label">Who</div>
-    <div class="field">
-      <label for="emp">Counting employee</label>
-      <select id="emp"></select>
-    </div>
-    <div class="field" id="takingOverField">
-      <label for="takingOver">Taking over the drawer</label>
-      <select id="takingOver" onchange="calc()"></select>
-    </div>
-    <label class="check" id="agreeWrap"><input type="checkbox" id="agreed" onchange="calc()"> Next person watched this count and agrees</label>
-  </div>
+<header>
 
-  <div class="section">
-    <div class="section-label">Current count</div>
-    <div class="row2">
-      <div class="field" id="salesField">
-        <label for="sales">Cleantie cash sales today</label>
-        <input class="money" id="sales" type="number" inputmode="decimal" min="0" step="0.01" placeholder="0.00" oninput="calc()">
-        <div class="hint">The day's running total from Cleantie — not just your shift. Leave blank on the first count of the day.</div>
-      </div>
-      <div class="field">
-        <label for="carts">Cart count</label>
-        <input class="num" id="carts" type="number" inputmode="numeric" min="0" step="1" placeholder="Required" oninput="calc()">
-        <div class="hint" id="cartHint">Checking last recorded cart count…</div>
-      </div>
-    </div>
-  </div>
+<h1>Oaks Inventory Tracker</h1>
 
-  <div class="section"><div class="section-label">Bills</div><div id="bills"></div></div>
-  <div class="section"><div class="section-label">Coins</div><div id="coins"></div></div>
+<p>
+Fluff & Fold + Vending Inventory
+</p>
 
-  <div class="total-card">
-    <div class="total-top">
-      <div><div class="total-lbl">Total</div><div class="status" id="status">—</div></div>
-      <div class="total-amt" id="total">$0.00</div>
-    </div>
-    <div class="expected" id="expected"></div>
-  </div>
+</header>
 
-  <div class="owner-alert" id="ownerAlert"></div>
-  <div class="note-alert" id="cartAlert"></div>
-  <div class="low-alert" id="lowAlert"></div>
-  <div class="issue-alert" id="issueAlert"></div>
 
-  <div class="section">
-    <div class="field">
-      <label for="note">Note on any difference</label>
-      <textarea id="note" placeholder="Required if the drawer doesn't match. Cash refund? Write 'Refund $___' here and fill out a paper refund slip."></textarea>
-    </div>
-  </div>
+<nav>
 
-  <div class="submit-wrap"><button type="button" class="submit-btn" id="countBtn" onclick="submitCount()">Submit drawer count</button></div>
+<button
+class="tab active"
+data-page="restock">
 
-  <div class="section withdraw-box">
-    <div class="section-label">Owner withdrawal</div>
-    <div class="row2">
-      <div class="field">
-        <label for="withdrawOwner">Owner</label>
-        <select id="withdrawOwner"></select>
-      </div>
-      <div class="field">
-        <label for="withdrawAmount">Amount removed</label>
-        <input class="money" id="withdrawAmount" type="number" inputmode="decimal" min="0" step="0.01" placeholder="0.00">
-      </div>
-    </div>
-    <div class="hint" id="withdrawHint" style="font-size:11px;color:#999;margin:-4px 0 10px;">Record this only after an owner physically removes cash.</div>
-    <button type="button" class="submit-btn secondary" id="withdrawBtn" onclick="submitWithdrawal()">Record owner withdrawal</button>
-  </div>
+Restock
 
-  <div class="toast" id="toast"></div>
+</button>
+
+
+<button
+class="tab"
+data-page="inventory">
+
+Count Stock
+
+</button>
+
+
+<button
+class="tab"
+data-page="buying">
+
+Buying
+
+</button>
+
+
+<button
+class="tab"
+data-page="history">
+
+History
+
+</button>
+
+</nav>
+
+
+<div
+id="message"
+role="status">
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+
+<main>
+
+
+<section
+id="restock"
+class="page active">
+
+<div class="card">
+
+<h2>
+Record a Restock
+</h2>
+
+
+<div class="row">
+
+<div>
+
+<label>
+Date
+</label>
+
+<input
+type="date"
+id="date">
+
+</div>
+
+
+<div>
+
+<label>
+Inventory Group
+</label>
+
+<select
+id="machine">
+</select>
+
+</div>
+
+</div>
+
+
+<div class="row">
+
+<div>
+
+<label>
+Category
+</label>
+
+<select
+id="category">
+</select>
+
+</div>
+
+
+<div>
+
+<label>
+Item
+</label>
+
+<select
+id="item">
+</select>
+
+</div>
+
+</div>
+
+
+<div class="row">
+
+<div>
+
+<label>
+Quantity replaced
+</label>
+
+<input
+id="qty"
+type="number"
+min="1"
+step="1">
+
+</div>
+
+
+<div>
+
+<label>
+Slot / Location (optional)
+</label>
+
+<input
+id="slot">
+
+</div>
+
+</div>
+
+
+<label>
+Note (optional)
+</label>
+
+<textarea
+id="note"
+rows="2">
+</textarea>
+
+
+<button
+class="primary wide"
+id="saveRestock">
+
+Save to Google Sheet
+
+</button>
+
+
+<p class="small">
+
+For vending, quantity replaced estimates movement.
+For Fluff & Fold, use Count Stock for the actual physical inventory count.
+
+</p>
+
+</div>
+
+</section>
+
+
+<section
+id="inventory"
+class="page">
+
+<div class="card">
+
+<h2>
+Count Stock
+</h2>
+
+
+<p class="small">
+
+Fluff & Fold inventory is kept separate from both vending machines.
+
+</p>
+
+
+<label>
+Inventory Group
+</label>
+
+<select
+id="countMachine">
+</select>
+
+
+<label>
+Product
+</label>
+
+<select
+id="countItem">
+</select>
+
+
+<div class="row">
+
+<div>
+
+<label>
+On hand
+</label>
+
+<input
+id="onHand"
+type="number"
+min="0"
+step="1">
+
+</div>
+
+
+<div>
+
+<label>
+Target units
+</label>
+
+<input
+id="target"
+type="number"
+min="0"
+step="1">
+
+</div>
+
+</div>
+
+
+<button
+class="primary wide"
+id="saveCount">
+
+Save count to Google Sheet
+
+</button>
+
+</div>
+
+</section>
+
+
+<section
+id="buying"
+class="page">
+
+<div class="card">
+
+<h2>
+Buy List
+</h2>
+
+
+<p
+class="small"
+id="buySummary">
+
+Loading…
+
+</p>
+
+
+<button
+class="toggle"
+id="buyToggle">
+
+Show everything
+
+</button>
+
+
+<div class="scroll">
+
+<table>
+
+<thead>
+
+<tr>
+
+<th>Inventory Group</th>
+
+<th>Product</th>
+
+<th>Have</th>
+
+<th>Target</th>
+
+<th>Need</th>
+
+<th>Buy from</th>
+
+<th>Cases</th>
+
+<th>Est. cost</th>
+
+<th>Buy by</th>
+
+<th>Status</th>
+
+</tr>
+
+</thead>
+
+
+<tbody
+id="buyRows">
+</tbody>
+
+</table>
+
+</div>
+
+
+<p>
+
+<a
+target="_blank"
+rel="noopener"
+href="https://docs.google.com/spreadsheets/d/18xul-Y88A1BQzYb8WE1DU80_13K0tFx9FqcadxhXhDs/edit">
+
+Open full cost model and buying plan
+
+</a>
+
+</p>
+
+</div>
+
+</section>
+
+
+<section
+id="history"
+class="page">
+
+<div class="card">
+
+<h2>
+Inventory History
+</h2>
+
+
+<p
+class="small"
+id="historySummary">
+</p>
+
+
+<div class="scroll">
+
+<table>
+
+<thead>
+
+<tr>
+
+<th>Date</th>
+
+<th>Inventory Group</th>
+
+<th>Category</th>
+
+<th>Item</th>
+
+<th>Quantity</th>
+
+<th>Location</th>
+
+<th>Note</th>
+
+<th></th>
+
+</tr>
+
+</thead>
+
+
+<tbody
+id="historyRows">
+</tbody>
+
+</table>
+
+</div>
+
+
+<button
+class="toggle wide"
+id="loadMore"
+style="display:none">
+
+Show 25 more
+
+</button>
+
+
+<p class="small">
+
+Entries are saved in the Google Sheet.
+
+</p>
+
+
+<button
+id="exportCsv">
+
+Export CSV
+
+</button>
+
+
+<button
+id="importCsv">
+
+Import CSV
+
+</button>
+
+
+<input
+type="file"
+id="file"
+accept=".csv,text/csv"
+hidden>
+
+</div>
+
+</section>
+
+
+</main>
+
+
 <script>
-  var EMAILJS_PUBLIC_KEY='ndWWB1hJwPp1a_UvF';
-  var EMAILJS_SERVICE_ID='service_vt5n8lc';
-  var EMAILJS_TEMPLATE_ID='template_m2zbjc3';
-  var OWNER_EMAIL='oaklaundromat@gmail.com';
-  var APPROVED_BANK=400;
-  var OWNER_WITHDRAWAL_ALERT=100;
-  var TOLERANCE=1.00;
-  var TZ='America/Los_Angeles';
-  var GOOGLE_SHEET_URL='https://script.google.com/macros/s/AKfycbyiauTAC7ayYeNSAGdpIeWB7G_Uc9Z-1dC4Pw0IWxgiz-1BuDa9M7R9hOM5Q60bgvW6/exec';
 
-  var STAFF=['Cinthia','Brian','Ramiro','Maria','Juan','New Hire','Manager'];
-  var OWNERS=['Hamid','Raihana','Mina'];
-  var START_OF_DAY='Start of day — nobody here yet';
 
-  var LOW_THRESHOLDS={
-    'd_1bills':{min:25,label:'$1 bills'},
-    'd_5bills':{min:8,label:'$5 bills'},
-    'd_Quarters':{min:20,label:'Quarters'},
-    'd_Dimes':{min:20,label:'Dimes'},
-    'd_Nickels':{min:40,label:'Nickels'},
-    'd_Pennies':{min:50,label:'Pennies'}
+const $ =
+  id =>
+    document.getElementById(id);
+
+
+/*
+  IMPORTANT:
+  Fluff & Fold is first,
+  so it is the default selection.
+*/
+const names = {
+
+  flufffold:
+    'Fluff & Fold',
+
+  snacks:
+    'Snack & Drink Machine',
+
+  laundry:
+    'Laundry Vending Machine'
+
+};
+
+
+let state = {
+  inventory:[],
+  history:[]
+};
+
+
+let pending = false;
+
+let messageTimer;
+
+let entryId =
+  newId();
+
+let buyShowAll =
+  false;
+
+let historyShown =
+  25;
+
+const PAGE =
+  25;
+
+
+/* =========================
+   ID
+========================= */
+
+function newId(){
+
+  return globalThis.crypto
+    ?.randomUUID
+    ?.()
+    ||
+    String(Date.now())
+    + '-'
+    + Math.random()
+      .toString(36)
+      .slice(2);
+
+}
+
+
+/* =========================
+   HTML ESCAPE
+========================= */
+
+const esc =
+  x =>
+    String(
+      x ?? ''
+    )
+    .replace(
+      /[&<>"']/g,
+      c => ({
+        '&':'&amp;',
+        '<':'&lt;',
+        '>':'&gt;',
+        '"':'&quot;',
+        "'":'&#39;'
+      }[c])
+    );
+
+
+/* =========================
+   NUMBER HELPER
+========================= */
+
+function needNum(v){
+
+  const n =
+    Number(
+      String(
+        v ?? ''
+      )
+      .replace(
+        /[^0-9.-]/g,
+        ''
+      )
+    );
+
+  return Number.isFinite(n)
+    ? n
+    : 0;
+
+}
+
+
+/* =========================
+   OPTIONS
+========================= */
+
+const options =
+  (
+    id,
+    list,
+    old
+  ) => {
+
+    $(id).innerHTML =
+      list
+        .map(
+          ([v,t]) =>
+            `<option value="${esc(v)}">${esc(t)}</option>`
+        )
+        .join('');
+
+    if (
+      list.some(
+        ([v]) =>
+          v === old
+      )
+    ) {
+      $(id).value =
+        old;
+    }
+
   };
 
-  var bills=[{label:'$100 bills',val:100},{label:'$50 bills',val:50},{label:'$20 bills',val:20},{label:'$10 bills',val:10},{label:'$5 bills',val:5},{label:'$1 bills',val:1}];
-  var coins=[{label:'Quarters',val:0.25},{label:'Dimes',val:0.10},{label:'Nickels',val:0.05},{label:'Pennies',val:0.01}];
 
-  var connStatus='loading';
-  var book=null;
+/* =========================
+   SERVER CALL
+========================= */
 
-  if(window.emailjs)emailjs.init(EMAILJS_PUBLIC_KEY);
+function call(
+  method,
+  arg,
+  onDone
+){
 
-  function fillSelect(id,first,items){
-    var h='<option value="">'+first+'</option>';
-    for(var i=0;i<items.length;i++)h+='<option value="'+items[i]+'">'+items[i]+'</option>';
-    document.getElementById(id).innerHTML=h;
-  }
-  fillSelect('emp','Select employee',STAFF);
-  fillSelect('takingOver','End of day — nobody taking over',STAFF);
-  fillSelect('withdrawOwner','Select owner',OWNERS);
-
-  function buildRows(items,cid){
-    var c=document.getElementById(cid);
-    for(var i=0;i<items.length;i++){
-      var item=items[i];var id='d_'+item.label.replace(/\W/g,'');
-      var row=document.createElement('div');row.className='denom-row';
-      row.innerHTML='<div class="denom-name">'+item.label+'</div><div class="qty-controls">'+
-        '<button type="button" onclick="adj(\''+id+'\',-1)">−</button>'+
-        '<input type="number" inputmode="numeric" id="'+id+'" value="0" min="0" data-val="'+item.val+'" oninput="calc()">'+
-        '<button type="button" onclick="adj(\''+id+'\',1)">+</button></div>'+
-        '<div class="denom-sub" id="sub_'+id+'">$0.00</div>';
-      c.appendChild(row);
-    }
-  }
-  buildRows(bills,'bills');buildRows(coins,'coins');
-
-  function adj(id,d){var el=document.getElementById(id);el.value=Math.max(0,(parseInt(el.value)||0)+d);calc();}
-  function r2(n){return Math.round(n*100)/100;}
-  function money(n){return '$'+Math.abs(n).toFixed(2);}
-  function signed(n){return (n>=0?'+':'-')+money(n);}
-  function numVal(id){var v=document.getElementById(id).value;return v===''?null:(parseFloat(v)||0);}
-
-  function laParts(){
-    var parts=new Intl.DateTimeFormat('en-US',{timeZone:TZ,year:'numeric',month:'2-digit',day:'2-digit',hour:'numeric',minute:'2-digit',hourCycle:'h23'}).formatToParts(new Date());
-    var v={};
-    for(var i=0;i<parts.length;i++)if(parts[i].type!=='literal')v[parts[i].type]=parts[i].value;
-    return v;
+  if (pending) {
+    return;
   }
 
-  /* Opening runs 5-8 AM, afternoon handoff 3-7 PM, close 9 PM-1 AM */
-  function shiftNow(){
-    var h=Number(laParts().hour);
-    if(h>=3&&h<12)return 'Morning';
-    if(h>=12&&h<21)return 'Afternoon';
-    return 'Evening';
+  pending =
+    true;
+
+  message(
+    method ===
+      'deleteRestock'
+      ? 'Deleting…'
+      : 'Saving…'
+  );
+
+  const runner =
+    google.script.run
+
+      .withSuccessHandler(
+        result => {
+
+          pending =
+            false;
+
+          state =
+            result.state
+            || result;
+
+          render();
+
+          message(
+
+            result.added !==
+              undefined
+
+              ?
+                `Imported ${result.added} entries.`
+                +
+                (
+                  result.skipped
+                    ?
+                      ` Skipped ${result.skipped} duplicate, invalid, or unavailable rows.`
+                    :
+                      ''
+                )
+
+              :
+              result.deleted ===
+                false
+
+                ?
+                  'Entry was already absent. History is up to date.'
+
+                :
+                method ===
+                  'deleteRestock'
+
+                  ?
+                    'Deleted from Google Sheet.'
+
+                  :
+                    'Saved to Google Sheet.',
+
+            false,
+
+            true
+          );
+
+          if (onDone) {
+            onDone();
+          }
+
+        }
+      )
+
+      .withFailureHandler(
+        e => {
+
+          pending =
+            false;
+
+          message(
+            `Not saved — ${e.message || String(e)}. Check the Sheet before retrying.`,
+            true
+          );
+
+        }
+      );
+
+
+  if (
+    arg === undefined
+  ) {
+
+    runner[method]();
+
+  } else {
+
+    runner[method](arg);
+
   }
 
-  /* Anything before 3 AM still belongs to the previous business day */
-  function businessDateStr(){
-    var v=laParts();
-    var day=new Date(Date.UTC(Number(v.year),Number(v.month)-1,Number(v.day)));
-    if(Number(v.hour)<3)day.setUTCDate(day.getUTCDate()-1);
-    return String(day.getUTCMonth()+1).padStart(2,'0')+'/'+String(day.getUTCDate()).padStart(2,'0')+'/'+day.getUTCFullYear();
-  }
-  function todayStr(){return businessDateStr();}
-  function currentTimeStr(){return new Date().toLocaleTimeString('en-US',{timeZone:TZ,hour:'2-digit',minute:'2-digit'});}
+}
 
-  function checkLowDenoms(){
-    var warnings=[];var keys=Object.keys(LOW_THRESHOLDS);
-    for(var i=0;i<keys.length;i++){
-      var k=keys[i];var el=document.getElementById(k);
-      if(!el)continue;
-      var qty=parseInt(el.value)||0;
-      if(qty<LOW_THRESHOLDS[k].min)warnings.push(LOW_THRESHOLDS[k].label+': '+qty+' (need '+LOW_THRESHOLDS[k].min+')');
-    }
-    var a=document.getElementById('lowAlert');
-    var counted=0;var dEls=document.querySelectorAll('[data-val]');
-    for(var j=0;j<dEls.length;j++)counted+=parseInt(dEls[j].value)||0;
-    if(warnings.length&&counted>0){
-      a.innerHTML='Running low on change — get more of these from the bank:<br>'+warnings.join('<br>');
-      a.style.display='block';
-    }else a.style.display='none';
-    return warnings;
-  }
 
-  function normTime(x){
-    var s=String(x||'');
-    if(/^\d{1,2}:\d{2}\s?(AM|PM)$/i.test(s))return s;
-    var d=new Date(s);
-    return isNaN(d)?s:d.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
-  }
-  function shortDate(key){
-    var s=String(key||'');
-    if(/^\d{1,2}\/\d{1,2}\/\d{4}$/.test(s)){
-      var m=s.split('/');
-      return new Date(Number(m[2]),Number(m[0])-1,Number(m[1])).toLocaleDateString('en-US',{month:'short',day:'numeric'});
-    }
-    var p=s.split('-');
-    if(p.length!==3)return s;
-    return new Date(Number(p[0]),Number(p[1])-1,Number(p[2])).toLocaleDateString('en-US',{month:'short',day:'numeric'});
+/* =========================
+   MESSAGE
+========================= */
+
+function message(
+  s,
+  error = false,
+  autoHide = false
+){
+
+  clearTimeout(
+    messageTimer
+  );
+
+  $('message').style.display =
+    'block';
+
+  $('message').style.background =
+    error
+      ? '#fce4e4'
+      : '#e5f5e4';
+
+  $('message').textContent =
+    s;
+
+  if (autoHide) {
+
+    messageTimer =
+      setTimeout(
+        () =>
+          $('message').style.display =
+            'none',
+        4500
+      );
+
   }
 
-  function loadBook(timeoutMs){
-    var timeout=new Promise(function(res){setTimeout(function(){res('TIMEOUT');},timeoutMs||8000);});
-    var req=fetch(GOOGLE_SHEET_URL+'?t='+Date.now(),{cache:'no-store'})
-      .then(function(r){if(!r.ok)throw new Error('Unable to read the ledger');return r.json();})
-      .catch(function(){return 'ERROR';});
-    return Promise.race([req,timeout]).then(function(p){
-      if(p==='TIMEOUT'||p==='ERROR'||p===null||typeof p!=='object'||p.success===false){connStatus='error';book=null;return null;}
-      if(!p.last){connStatus='empty';book=null;return null;}
-      connStatus='ok';
-      p.wdSinceLast=Number(p.last.withdrawalsSinceCount||0);
-      p.wdSinceTodayOpen=p.todayOpen&&p.todayOpen.submissionId===p.last.submissionId?p.wdSinceLast:Number(p.wdSinceTodayOpen||0);
-      p.last.time=normTime(p.last.time);
-      if(p.todayOpen)p.todayOpen.time=normTime(p.todayOpen.time);
-      if(p.prevClose)p.prevClose.time=normTime(p.prevClose.time);
-      book=p;return p;
-    });
+}
+
+
+/* =========================
+   RESTOCK OPTIONS
+========================= */
+
+function restockOptions(){
+
+  const machine =
+    $('machine').value;
+
+  const cats =
+    [
+      ...new Set(
+
+        state.inventory
+          .filter(
+            x =>
+              x.machine ===
+                machine
+          )
+          .map(
+            x =>
+              x.category
+          )
+
+      )
+    ];
+
+  options(
+    'category',
+    cats.map(
+      x =>
+        [x,x]
+    ),
+    $('category').value
+  );
+
+  options(
+    'item',
+
+    state.inventory
+      .filter(
+        x =>
+          x.machine ===
+            machine
+          &&
+          x.category ===
+            $('category').value
+      )
+      .map(
+        x =>
+          [
+            x.item,
+            x.item
+          ]
+      ),
+
+    $('item').value
+  );
+
+}
+
+
+/* =========================
+   COUNT OPTIONS
+========================= */
+
+function countOptions(){
+
+  options(
+    'countItem',
+
+    state.inventory
+      .filter(
+        x =>
+          x.machine ===
+            $('countMachine').value
+      )
+      .map(
+        x =>
+          [
+            x.item,
+            x.item
+          ]
+      ),
+
+    $('countItem').value
+  );
+
+  const c =
+    state.inventory.find(
+      x =>
+        x.machine ===
+          $('countMachine').value
+        &&
+        x.item ===
+          $('countItem').value
+    );
+
+  $('onHand').value =
+    c?.onHand
+    ?? '';
+
+  $('target').value =
+    c?.target
+    ?? '';
+
+}
+
+
+/* =========================
+   BUY LIST
+========================= */
+
+function renderBuy(){
+
+  const needed =
+    state.inventory.filter(
+      x =>
+        needNum(
+          x.need
+        ) > 0
+    );
+
+  const shown =
+    buyShowAll
+      ? state.inventory
+      : needed;
+
+  $('buySummary').textContent =
+
+    buyShowAll
+
+      ?
+        `${state.inventory.length} products shown across all inventory groups.`
+
+      :
+      needed.length
+
+        ?
+          `${needed.length} product${needed.length === 1 ? '' : 's'} currently show a reorder need.`
+
+        :
+          'No items currently show a reorder need based on saved counts and targets.';
+
+  $('buyToggle').textContent =
+
+    buyShowAll
+
+      ?
+        'Show only items to buy'
+
+      :
+        'Show everything';
+
+  if (!shown.length) {
+
+    $('buyRows').innerHTML =
+
+      `<tr>
+        <td
+          class="empty"
+          data-label="">
+          No items to show.
+        </td>
+      </tr>`;
+
+    return;
   }
 
-  function isOpening(){return !book||!book.todayOpen;}
-  function wdSinceAnchor(){
-    if(!book)return 0;
-    return book.todayOpen?Number(book.wdSinceTodayOpen||0):Number(book.wdSinceLast||0);
+  $('buyRows').innerHTML =
+
+    shown
+      .map(
+        x => `
+
+          <tr>
+
+            <td data-label="Group">
+              ${esc(names[x.machine] || x.machine)}
+            </td>
+
+            <td data-label="Product">
+              ${esc(x.item)}
+              ${
+                x.slots
+                  ?
+                    ' (' + esc(x.slots) + ')'
+                  :
+                    ''
+              }
+            </td>
+
+            <td data-label="Have">
+              ${esc(x.onHand)}
+            </td>
+
+            <td data-label="Target">
+              ${esc(x.target)}
+            </td>
+
+            <td data-label="Need">
+              ${esc(x.need)}
+            </td>
+
+            <td data-label="Buy from">
+              ${esc(x.vendor)}
+            </td>
+
+            <td data-label="Cases">
+              ${esc(x.cases)}
+            </td>
+
+            <td data-label="Est. cost">
+              ${esc(x.estimate)}
+            </td>
+
+            <td data-label="Buy by">
+              ${esc(x.buyBy)}
+            </td>
+
+            <td data-label="Status">
+              ${esc(x.status)}
+            </td>
+
+          </tr>
+
+        `
+      )
+      .join('');
+
+}
+
+
+/* =========================
+   HISTORY
+========================= */
+
+function renderHistory(){
+
+  const reversed =
+    state.history
+      .slice()
+      .reverse();
+
+  const shown =
+    reversed.slice(
+      0,
+      historyShown
+    );
+
+  $('historySummary').textContent =
+
+    reversed.length
+
+      ?
+        `Showing ${shown.length} of ${reversed.length} saved entries.`
+
+      :
+        'No inventory history has been saved yet.';
+
+  if (!shown.length) {
+
+    $('historyRows').innerHTML =
+
+      `<tr>
+        <td
+          class="empty"
+          data-label="">
+          No history entries yet.
+        </td>
+      </tr>`;
+
+  } else {
+
+    $('historyRows').innerHTML =
+
+      shown
+        .map(
+          x => `
+
+            <tr>
+
+              <td data-label="Date">
+                ${esc(x.date)}
+              </td>
+
+              <td data-label="Group">
+                ${esc(names[x.machine] || x.machine)}
+              </td>
+
+              <td data-label="Category">
+                ${esc(x.category)}
+              </td>
+
+              <td data-label="Item">
+                ${esc(x.item)}
+              </td>
+
+              <td data-label="Quantity">
+                ${esc(x.qty)}
+              </td>
+
+              <td data-label="Location">
+                ${esc(x.slot)}
+              </td>
+
+              <td data-label="Note">
+                ${esc(x.note)}
+              </td>
+
+              <td data-label="">
+
+                <button
+                  class="danger"
+                  data-delete="${esc(x.id)}">
+
+                  Delete
+
+                </button>
+
+              </td>
+
+            </tr>
+
+          `
+        )
+        .join('');
+
   }
 
-  function cartBaseline(){
-    if(book&&book.lastCart&&isFinite(Number(book.lastCart.count)))return Number(book.lastCart.count);
-    return null;
-  }
-  function cartChange(){
-    var raw=document.getElementById('carts').value;
-    var baseline=cartBaseline();
-    if(raw===''||baseline===null)return null;
-    var n=Number(raw);
-    if(!isFinite(n)||n<0||Math.floor(n)!==n)return null;
-    return {baseline:baseline,count:n,difference:n-baseline};
+  $('loadMore').style.display =
+
+    historyShown <
+      reversed.length
+
+      ?
+        'block'
+
+      :
+        'none';
+
+}
+
+
+/* =========================
+   RENDER
+========================= */
+
+function render(){
+
+  for (
+    const id of [
+      'machine',
+      'countMachine'
+    ]
+  ) {
+
+    options(
+      id,
+      Object.entries(names),
+      $(id).value
+    );
+
   }
 
-  /* Carts are reported, never blocking — a stray cart must not cost us a drawer count */
-  function renderCarts(){
-    var baseline=cartBaseline();
-    var change=cartChange();
-    document.getElementById('cartHint').textContent=baseline===null
-      ?'No previous cart count on record.'
-      :'Last recorded: '+baseline+' carts ('+book.lastCart.employee+', '+shortDate(book.lastCart.date)+').';
-    var a=document.getElementById('cartAlert');
-    if(change&&change.difference!==0){
-      a.textContent=(change.difference<0?'Carts down ':'Carts up ')+Math.abs(change.difference)+
-        ' since the last count ('+change.baseline+' to '+change.count+'). Worth a quick look, but you can still submit.';
-      a.style.display='block';
-    }else a.style.display='none';
-  }
+  restockOptions();
 
-  function renderPrev(){
-    var b=document.getElementById('prevBox');
-    document.getElementById('shiftLine').textContent='The Oaks Laundry — '+shiftNow()+' count';
-    if(!book){
-      b.innerHTML=connStatus==='error'
-        ?'<b style="color:#c0392b">Can\'t reach the count records.</b> Finish your count and submit, then tell the owner the app could not load the last count.'
-        :'No previous count on record yet. This count will start the log.';
+  countOptions();
+
+  renderBuy();
+
+  renderHistory();
+
+}
+
+
+/* =========================
+   CHANGE EVENTS
+========================= */
+
+$('machine').onchange =
+  restockOptions;
+
+$('category').onchange =
+  restockOptions;
+
+$('countMachine').onchange =
+  countOptions;
+
+$('countItem').onchange =
+  countOptions;
+
+
+/* =========================
+   BUY FILTER
+========================= */
+
+$('buyToggle').onclick =
+  () => {
+
+    buyShowAll =
+      !buyShowAll;
+
+    renderBuy();
+
+  };
+
+
+/* =========================
+   HISTORY MORE
+========================= */
+
+$('loadMore').onclick =
+  () => {
+
+    historyShown +=
+      PAGE;
+
+    renderHistory();
+
+  };
+
+
+/* =========================
+   SAVE RESTOCK
+========================= */
+
+$('saveRestock').onclick =
+  () => {
+
+    const form = {
+
+      id:
+        entryId,
+
+      date:
+        $('date').value,
+
+      machine:
+        $('machine').value,
+
+      category:
+        $('category').value,
+
+      item:
+        $('item').value,
+
+      qty:
+        $('qty').value,
+
+      slot:
+        $('slot').value,
+
+      note:
+        $('note').value
+
+    };
+
+    if (
+      !form.date
+      ||
+      !form.item
+      ||
+      !Number.isInteger(
+        Number(
+          form.qty
+        )
+      )
+      ||
+      Number(
+        form.qty
+      ) < 1
+    ) {
+
+      message(
+        'Choose an item and enter a whole-number quantity.',
+        true
+      );
+
       return;
     }
-    var h='';
-    var countToday=Number(book.countToday||0);
-    h+='<b>Counts today: '+countToday+'.</b> '+(countToday>=2?'Minimum reached.':'At least '+(2-countToday)+' more expected.')+'<br>';
-    if(book.prevClose&&isOpening())
-      h+='Last night\'s close: <b>$'+Number(book.prevClose.total).toFixed(2)+'</b> — '+book.prevClose.employee+', '+shortDate(book.prevClose.date)+' '+book.prevClose.time+'<br>';
-    if(book.todayOpen)
-      h+='Opened today: <b>$'+Number(book.todayOpen.total).toFixed(2)+'</b> — '+book.todayOpen.employee+', '+book.todayOpen.time+'<br>';
-    h+='Last count: <b>$'+Number(book.last.total).toFixed(2)+'</b> — '+book.last.employee+', '+(book.last.shift||'Recorded count')+', '+book.last.time;
-    var w=wdSinceAnchor();
-    if(w>0)h+='<br>Owner withdrawals since'+(book.todayOpen?' opening':' the last count')+': <b>$'+w.toFixed(2)+'</b>';
-    if(isOpening())h+='<br>First count of the day — no handoff needed.';
-    b.innerHTML=h;
-  }
 
-  function firstTimeOver(total){
-    if(!book)return false;
-    var nowOver=(total-APPROVED_BANK)>=OWNER_WITHDRAWAL_ALERT;
-    var wasOver=(Number(book.last.total)-Number(book.wdSinceLast||0)-APPROVED_BANK)>=OWNER_WITHDRAWAL_ALERT;
-    return nowOver&&!wasOver;
-  }
+    call(
+      'saveRestock',
+      form,
+      () => {
 
-  function evaluate(total){
-    var sales=numVal('sales');
-    var takingOver=document.getElementById('takingOver').value;
-    var agreed=document.getElementById('agreed').checked;
-    var r={issues:[],expectedText:'',expectedClass:'',needsNote:false,alertOwner:false,expected:null,diff:null,causes:[],cartNote:''};
+        entryId =
+          newId();
 
-    if(book){
-      var w=wdSinceAnchor();
-      if(isOpening()){
-        var anchor=book.prevClose||book.last;
-        var exp1=r2(Number(anchor.total)-w);
-        var gap=r2(total-exp1);
-        r.expected=exp1;r.diff=gap;
-        if(Math.abs(gap)<=TOLERANCE){
-          r.expectedText='Matches last night\'s close of $'+Number(anchor.total).toFixed(2);
-          r.expectedClass='ok';
-        }else{
-          r.issues.push('OVERNIGHT DIFFERENCE '+signed(gap));
-          r.needsNote=true;r.alertOwner=true;
-          r.expectedText='Expected $'+exp1.toFixed(2)+' from last night\'s close — difference '+signed(gap);
-          r.expectedClass='low';
-          r.causes.push(gap<0
-            ?'Cash left the drawer overnight — a withdrawal was not logged, or last night\'s count was too high.'
-            :'More cash than last night — last night\'s count was likely too low, or money was added.');
+        $('qty').value =
+          '';
+
+        $('slot').value =
+          '';
+
+        $('note').value =
+          '';
+
+      }
+    );
+
+  };
+
+
+/* =========================
+   SAVE PHYSICAL COUNT
+========================= */
+
+$('saveCount').onclick =
+  () => {
+
+    const form = {
+
+      machine:
+        $('countMachine').value,
+
+      item:
+        $('countItem').value,
+
+      onHand:
+        $('onHand').value,
+
+      target:
+        $('target').value
+
+    };
+
+    if (
+      !Number.isInteger(
+        Number(
+          form.onHand
+        )
+      )
+      ||
+      form.onHand === ''
+      ||
+      Number(
+        form.onHand
+      ) < 0
+      ||
+      !Number.isInteger(
+        Number(
+          form.target
+        )
+      )
+      ||
+      form.target === ''
+      ||
+      Number(
+        form.target
+      ) < 0
+    ) {
+
+      message(
+        'Enter both counts as whole numbers.',
+        true
+      );
+
+      return;
+    }
+
+    call(
+      'saveInventory',
+      form
+    );
+
+  };
+
+
+/* =========================
+   DELETE HISTORY
+========================= */
+
+$('historyRows').onclick =
+  e => {
+
+    const deleteButton =
+      e.target.closest(
+        '[data-delete]'
+      );
+
+    const id =
+      deleteButton
+        ?.dataset.delete;
+
+    if (
+      id
+      &&
+      confirm(
+        'Delete this history entry?'
+      )
+    ) {
+
+      call(
+        'deleteRestock',
+        id
+      );
+
+    }
+
+  };
+
+
+/* =========================
+   TAB HANDLER
+========================= */
+
+document
+  .querySelectorAll('.tab')
+  .forEach(
+    b => {
+
+      b.onclick =
+        () => {
+
+          document
+            .querySelectorAll(
+              '.tab,.page'
+            )
+            .forEach(
+              x =>
+                x.classList.remove(
+                  'active'
+                )
+            );
+
+          b.classList.add(
+            'active'
+          );
+
+          $(
+            b.dataset.page
+          )
+          .classList.add(
+            'active'
+          );
+
+          window.scrollTo(
+            0,
+            0
+          );
+
+        };
+
+    }
+  );
+
+
+/* =========================
+   CSV
+========================= */
+
+function csvCell(x){
+
+  return `"${String(x ?? '').replaceAll('"','""')}"`;
+
+}
+
+
+$('exportCsv').onclick =
+  () => {
+
+    const rows = [
+
+      [
+        'Date',
+        'Machine',
+        'Category',
+        'Item',
+        'Quantity',
+        'Slot',
+        'Note'
+      ],
+
+      ...state.history.map(
+        x => [
+
+          x.date,
+          x.machine,
+          x.category,
+          x.item,
+          x.qty,
+          x.slot,
+          x.note
+
+        ]
+      )
+
+    ];
+
+    const blob =
+      new Blob(
+
+        [
+          rows
+            .map(
+              r =>
+                r
+                  .map(csvCell)
+                  .join(',')
+            )
+            .join('\r\n')
+        ],
+
+        {
+          type:'text/csv'
         }
-      }else if(sales===null){
-        r.expectedText='Enter today\'s running cash sales total from Cleantie.';
-      }else{
-        var exp2=r2(Number(book.todayOpen.total)+sales-w);
-        var diff=r2(total-exp2);
-        r.expected=exp2;r.diff=diff;
-        if(Math.abs(diff)<=TOLERANCE){
-          r.expectedText='Expected $'+exp2.toFixed(2)+' — matches';
-          r.expectedClass='ok';
-        }else{
-          r.issues.push('DIFFERENCE '+signed(diff));
-          r.needsNote=true;r.alertOwner=true;
-          r.expectedText='Expected $'+exp2.toFixed(2)+' — difference '+signed(diff);
-          r.expectedClass='low';
-          var lastSales=(book.last.sales===null||book.last.sales===undefined)?null:Number(book.last.sales);
-          if(diff>0&&lastSales!==null&&Math.abs(diff-lastSales)<=0.02)
-            r.causes.push('The sales figure looks like this shift only. Enter Cleantie\'s running total for the entire business day.');
-          if(diff<0&&Math.abs(diff+sales)<=0.02)
-            r.causes.push('The drawer is short by exactly today\'s sales. The cash may not have entered the drawer, or the sales total may belong to another day.');
-          if(Math.abs(diff)<=2)
-            r.causes.push('This may be a small counting error. Recount the coins and $1 bills.');
-          if(diff<0)r.causes.push('Possible unrecorded cash removal, cash refund, or owner withdrawal.');
-          else r.causes.push('Possible extra cash, card sale recorded as cash, or an understated Cleantie total.');
+
+      );
+
+    const url =
+      URL.createObjectURL(blob);
+
+    const a =
+      document.createElement('a');
+
+    a.href =
+      url;
+
+    a.download =
+      'oaks_inventory_backup.csv';
+
+    a.click();
+
+    setTimeout(
+      () =>
+        URL.revokeObjectURL(
+          url
+        ),
+      3000
+    );
+
+  };
+
+
+function parseCsv(t){
+
+  const rows = [];
+
+  let row = [];
+
+  let field = '';
+
+  let quoted = false;
+
+  for (
+    let i = 0;
+    i < t.length;
+    i++
+  ) {
+
+    const c =
+      t[i];
+
+    if (quoted) {
+
+      if (
+        c === '"'
+        &&
+        t[i + 1] === '"'
+      ) {
+
+        field += '"';
+
+        i++;
+
+      } else if (
+        c === '"'
+      ) {
+
+        quoted = false;
+
+      } else {
+
+        field += c;
+
+      }
+
+    } else if (
+      c === '"'
+      &&
+      field === ''
+    ) {
+
+      quoted = true;
+
+    } else if (
+      c === ','
+    ) {
+
+      row.push(field);
+
+      field = '';
+
+    } else if (
+      c === '\r'
+      ||
+      c === '\n'
+    ) {
+
+      if (
+        c === '\r'
+        &&
+        t[i + 1] === '\n'
+      ) {
+
+        i++;
+
+      }
+
+      row.push(field);
+
+      /*
+        Do not add trailing blank rows.
+      */
+      if (
+        row.some(
+          x =>
+            String(x).length
+        )
+      ) {
+
+        rows.push(row);
+
+      }
+
+      row = [];
+
+      field = '';
+
+    } else {
+
+      field += c;
+
+    }
+
+  }
+
+  if (
+    field
+    ||
+    row.length
+  ) {
+
+    row.push(field);
+
+    if (
+      row.some(
+        x =>
+          String(x).length
+      )
+    ) {
+
+      rows.push(row);
+
+    }
+
+  }
+
+  return rows;
+
+}
+
+
+$('importCsv').onclick =
+  () =>
+    $('file').click();
+
+
+$('file').onchange =
+  async e => {
+
+    const file =
+      e.target.files[0];
+
+    if (!file) {
+      return;
+    }
+
+    try {
+
+      const [
+        head,
+        ...data
+      ] =
+
+        parseCsv(
+          (
+            await file.text()
+          )
+          .replace(
+            /^\uFEFF/,
+            ''
+          )
+        );
+
+      const old =
+        JSON.stringify(head)
+        ===
+        '["Date","Category","Item","Quantity","Slot","Note"]';
+
+      const newer =
+        JSON.stringify(head)
+        ===
+        '["Date","Machine","Category","Item","Quantity","Slot","Note"]';
+
+      if (
+        !old
+        &&
+        !newer
+      ) {
+
+        throw Error(
+          'This is not an Oaks inventory CSV.'
+        );
+
+      }
+
+      const rows =
+        data
+
+          .filter(
+            r =>
+              r.length >=
+              (
+                old
+                  ? 6
+                  : 7
+              )
+          )
+
+          .map(
+            r => {
+
+              const [
+                date,
+                machine,
+                category,
+                item,
+                qty,
+                slot,
+                note
+              ] =
+
+                old
+
+                  ?
+                    [
+                      r[0],
+                      'snacks',
+                      ...r.slice(1)
+                    ]
+
+                  :
+                    r;
+
+              return {
+                date,
+                machine,
+                category,
+                item,
+                qty,
+                slot,
+                note
+              };
+
+            }
+          );
+
+      call(
+        'importHistory',
+        rows,
+        () => {
+
+          historyShown =
+            PAGE;
+
+          renderHistory();
+
+          window.scrollTo(
+            0,
+            0
+          );
+
         }
-      }
+      );
+
+    } catch (err) {
+
+      message(
+        err.message,
+        true
+      );
+
+    } finally {
+
+      e.target.value =
+        '';
+
     }
 
-    if(!isOpening()&&takingOver&&takingOver!==START_OF_DAY&&!agreed){
-      r.issues.push('NEXT PERSON DID NOT CONFIRM');
-      r.needsNote=true;r.alertOwner=true;
+  };
+
+
+/* =========================
+   TODAY
+========================= */
+
+const d =
+  new Date();
+
+$('date').value = [
+
+  d.getFullYear(),
+
+  String(
+    d.getMonth() + 1
+  )
+  .padStart(
+    2,
+    '0'
+  ),
+
+  String(
+    d.getDate()
+  )
+  .padStart(
+    2,
+    '0'
+  )
+
+].join('-');
+
+
+/* =========================
+   LOAD APP
+========================= */
+
+message(
+  'Loading tracker…'
+);
+
+
+google.script.run
+
+  .withSuccessHandler(
+    data => {
+
+      state =
+        data;
+
+      render();
+
+      $('message').style.display =
+        'none';
+
     }
+  )
 
-    var carts=cartChange();
-    if(carts&&carts.difference!==0){
-      r.cartNote=(carts.difference<0?'CARTS DOWN ':'CARTS UP ')+Math.abs(carts.difference)+' ('+carts.baseline+' to '+carts.count+')';
-      r.alertOwner=true;
-    }
+  .withFailureHandler(
+    e =>
+      message(
+        e.message ||
+        String(e),
+        true
+      )
+  )
 
-    return r;
-  }
+  .getState();
 
-  function calc(){
-    var total=0;var els=document.querySelectorAll('[data-val]');
-    for(var i=0;i<els.length;i++){
-      var el=els[i];
-      var sub=(parseInt(el.value)||0)*parseFloat(el.dataset.val);
-      total+=sub;
-      document.getElementById('sub_'+el.id).textContent='$'+sub.toFixed(2);
-    }
-    total=r2(total);
-    document.getElementById('total').textContent='$'+total.toFixed(2);
 
-    var bankDiff=r2(total-APPROVED_BANK);
-    var s=document.getElementById('status');
-    if(total===0){s.textContent='Start counting';s.className='status';}
-    else if(total<APPROVED_BANK){s.textContent=money(bankDiff)+' under the $'+APPROVED_BANK+' bank';s.className='status low';}
-    else if(bankDiff>0){s.textContent='+'+money(bankDiff)+' above bank';s.className='status ok';}
-    else{s.textContent='Balanced — $'+APPROVED_BANK.toFixed(2);s.className='status ok';}
-
-    var oa=document.getElementById('ownerAlert');
-    var hint=document.getElementById('withdrawHint');
-    if(bankDiff>=OWNER_WITHDRAWAL_ALERT){
-      oa.innerHTML='Drawer is <b>$'+bankDiff.toFixed(2)+'</b> above the $'+APPROVED_BANK.toFixed(2)+' bank — ready for an owner withdrawal.';
-      oa.style.display='block';
-      hint.textContent='Suggested: $'+bankDiff.toFixed(2)+' returns the drawer to $'+APPROVED_BANK.toFixed(2)+'. Record only after an owner physically removes cash.';
-    }else{
-      oa.style.display='none';
-      hint.textContent='Record this only after an owner physically removes cash.';
-    }
-
-    var toEl=document.getElementById('takingOver');
-    var unknown=(connStatus==='error');
-    var hasStart=toEl.options[1]&&toEl.options[1].value===START_OF_DAY;
-    if(unknown&&!hasStart){
-      var o=document.createElement('option');o.text=START_OF_DAY;o.value=START_OF_DAY;
-      toEl.add(o,toEl.options[1]||null);
-    }else if(!unknown&&hasStart){
-      if(toEl.value===START_OF_DAY)toEl.value='';
-      toEl.remove(1);
-    }
-    var op=unknown?(toEl.value===START_OF_DAY):isOpening();
-    document.getElementById('takingOverField').style.display=(unknown||!isOpening())?'block':'none';
-    if(!unknown&&isOpening())toEl.value='';
-    document.getElementById('agreeWrap').style.display=(!op&&toEl.value)?'flex':'none';
-
-    renderCarts();
-
-    var ev=evaluate(total);
-    var ex=document.getElementById('expected');
-    ex.textContent=ev.expectedText;
-    ex.className='expected '+ev.expectedClass;
-    ex.style.display=ev.expectedText?'block':'none';
-
-    var ia=document.getElementById('issueAlert');
-    if(ev.needsNote){
-      ia.innerHTML='Needs a note before submitting:<br>'+ev.issues.join('<br>');
-      ia.style.display='block';
-    }else ia.style.display='none';
-
-    checkLowDenoms();
-    return {total:total,diff:bankDiff};
-  }
-
-  function makeId(prefix){
-    var d=new Date();
-    function pad(n){return String(n).padStart(2,'0');}
-    return prefix+'-'+d.getFullYear()+pad(d.getMonth()+1)+pad(d.getDate())+'-'+pad(d.getHours())+pad(d.getMinutes())+pad(d.getSeconds())+'-'+Math.random().toString(36).slice(2,6).toUpperCase();
-  }
-
-  function post(data){
-    return fetch(GOOGLE_SHEET_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(data)})
-      .then(function(r){if(!r.ok)throw new Error('Script returned HTTP '+r.status);return r.json();})
-      .then(function(result){
-        if(!result.success)throw new Error(result.error||'Script rejected the submission');
-        if(result.submissionId!==data.submissionId)throw new Error('Script returned the wrong submission ID');
-        return result;
-      });
-  }
-
-  function stopSubmit(button,message,focusId){
-    showToast(message,'error');
-    button.disabled=false;
-    button.textContent='Submit drawer count';
-    if(focusId)document.getElementById(focusId).focus();
-  }
-
-  function submitCount(){
-    var employee=document.getElementById('emp').value;
-    if(!employee){showToast('Please select who is counting.','error');return;}
-
-    var button=document.getElementById('countBtn');
-    var currentSubmissionId='';
-    button.disabled=true;
-    button.textContent='Checking…';
-
-    loadBook(5000).then(function(){
-      renderPrev();
-
-      var total=calc().total;
-      var ev=evaluate(total);
-      var sales=numVal('sales');
-      var note=document.getElementById('note').value.trim();
-      var cartValue=document.getElementById('carts').value;
-
-      if(book&&!isOpening()&&sales===null)
-        return stopSubmit(button,'Enter today\'s running cash sales total from Cleantie.','sales');
-
-      if(cartValue===''||!isFinite(Number(cartValue))||Number(cartValue)<0||Math.floor(Number(cartValue))!==Number(cartValue))
-        return stopSubmit(button,'Enter the whole number of carts you counted.','carts');
-
-      if(ev.needsNote&&!note)
-        return stopSubmit(button,'Add a note explaining the difference.','note');
-
-      button.textContent='Submitting…';
-
-      var lowWarnings=checkLowDenoms();
-      var date=businessDateStr();
-      var time=currentTimeStr();
-      var shiftName=shiftNow();
-      var id=makeId('CD');
-      currentSubmissionId=id;
-
-      var toVal=document.getElementById('takingOver').value;
-      var takingOver=(isOpening()||toVal===START_OF_DAY)?'':toVal;
-      var agreed=document.getElementById('agreed').checked;
-      var w=wdSinceAnchor();
-      var crossedOver=firstTimeOver(total);
-
-      var expectedValue=(ev.expected===null||ev.expected===undefined)?'':ev.expected;
-      var differenceValue=(ev.diff===null||ev.diff===undefined)?'':ev.diff;
-
-      var denomData={};var lines=[];var allItems=bills.concat(coins);
-      for(var i=0;i<allItems.length;i++){
-        var item=allItems[i];
-        var qty=parseInt(document.getElementById('d_'+item.label.replace(/\W/g,'')).value)||0;
-        denomData[item.label]=qty;
-        if(qty>0)lines.push(item.label+' x '+qty+' = $'+(qty*item.val).toFixed(2));
-      }
-
-      var bankDiff=r2(total-APPROVED_BANK);
-      var statusText=total<APPROVED_BANK?'SHORT — '+money(bankDiff):(bankDiff>0?'ABOVE BANK +'+money(bankDiff):'BALANCED');
-      if(ev.issues.length)statusText+=' | '+ev.issues.join(' | ');
-
-      var sheetPromise=post({
-        action:'count',submissionId:id,date:date,time:time,employee:employee,shift:shiftName,
-        total:total.toFixed(2),status:statusText,
-        hundreds:denomData['$100 bills']||0,
-        fifties:denomData['$50 bills']||0,
-        twenties:denomData['$20 bills']||0,
-        tens:denomData['$10 bills']||0,
-        fives:denomData['$5 bills']||0,
-        ones:denomData['$1 bills']||0,
-        quarters:denomData['Quarters']||0,
-        dimes:denomData['Dimes']||0,
-        nickels:denomData['Nickels']||0,
-        pennies:denomData['Pennies']||0,
-        sales:(sales===null?'':sales),
-        expected:expectedValue,
-        difference:differenceValue,
-        withdrawalsSinceCount:w,
-        carts:cartValue,
-        takingOver:takingOver,
-        agreed:(takingOver?(agreed?'Yes':'No'):''),
-        note:note
-      });
-
-      var needsAlert=total<APPROVED_BANK||lowWarnings.length>0||ev.alertOwner||crossedOver;
-
-      var body='';
-      if(ev.issues.length)body+=ev.issues.join('\n')+'\n\n';
-      if(book){
-        if(book.prevClose)body+='Last night close   $'+Number(book.prevClose.total).toFixed(2)+'   '+book.prevClose.employee+', '+shortDate(book.prevClose.date)+' '+book.prevClose.time+'\n';
-        if(book.todayOpen)body+='Opened today       $'+Number(book.todayOpen.total).toFixed(2)+'   '+book.todayOpen.employee+', '+book.todayOpen.time+'\n';
-        if(book.todayOpen&&book.prevClose)body+='Overnight change   '+signed(r2(Number(book.todayOpen.total)-Number(book.prevClose.total)))+'\n';
-        if(sales!==null)body+='Cash sales today  +$'+Number(sales).toFixed(2)+'   (Cleantie running total)\n';
-        if(w>0)body+='Owner withdrawals  -$'+w.toFixed(2)+'\n';
-        if(ev.expected!==null&&ev.expected!==undefined)body+='Expected now       $'+Number(ev.expected).toFixed(2)+'\n';
-      }
-      body+='Counted now        $'+total.toFixed(2)+'   '+employee+', '+shiftName+' '+time+'\n';
-      if(ev.diff!==null&&ev.diff!==undefined&&Math.abs(ev.diff)>TOLERANCE)body+='DIFFERENCE         '+signed(ev.diff)+'\n';
-      if(ev.causes.length)body+='\nLikely cause:\n- '+ev.causes.join('\n- ')+'\n';
-      if(note)body+='\nStaff note: '+note+'\n';
-      if(takingOver)body+='Handed to: '+takingOver+(agreed?' (confirmed)':' (DID NOT CONFIRM)')+'\n';
-      body+='Carts: '+cartValue+(cartBaseline()!==null?' (last recorded '+cartBaseline()+')':' (no previous count)')+'\n';
-      if(ev.cartNote)body+=ev.cartNote+'\n';
-      if(crossedOver)body+='\nDrawer is $'+bankDiff.toFixed(2)+' over the bank — ready for a withdrawal. No further emails about this until it drops back under.\n';
-      if(lowWarnings.length)body+='\nRunning low on change: '+lowWarnings.join(', ')+'\n';
-      body+='\nDenominations:\n'+lines.join('\n')+'\n\nID: '+id;
-
-      var tag=ev.issues.length
-        ?ev.issues[0].split(' ').slice(0,2).join(' ')
-        :(total<APPROVED_BANK?'Drawer Short':(crossedOver?'Drawer $100+ Over Bank':(ev.cartNote?'Cart Count Changed':'Low Change')));
-
-      function sendAlert(){
-        if(!needsAlert||!window.emailjs)return Promise.resolve();
-        return emailjs.send(EMAILJS_SERVICE_ID,EMAILJS_TEMPLATE_ID,{
-          to_email:OWNER_EMAIL,
-          subject:tag+' — '+shiftName+' — '+employee+' — '+shortDate(date)+' '+time,
-          employee:employee,
-          shift:shiftName,
-          timestamp:date+' '+time,
-          total:'$'+total.toFixed(2),
-          approved:'$'+APPROVED_BANK.toFixed(2),
-          difference:statusText,
-          breakdown:body
-        });
-      }
-
-      return sheetPromise.then(function(result){
-        showToast((result.assignedShift||shiftName)+' count saved in row '+result.row+' — '+id,'success');
-        button.textContent='Saved';
-        return sendAlert().catch(function(error){
-          console.error('Alert email failed',error);
-          showToast('Count saved in the sheet — '+id+'. Alert email failed.','success');
-        });
-      });
-    }).catch(function(error){
-      console.error(error);
-      showToast('Count NOT saved: '+(error&&error.message?error.message:'Unknown error')+'. Keep the count and tell the owner. ID: '+(currentSubmissionId||'unknown'),'error');
-      button.disabled=false;
-      button.textContent='Submit drawer count';
-    });
-  }
-
-  function submitWithdrawal(){
-    var owner=document.getElementById('withdrawOwner').value;
-    var amount=numVal('withdrawAmount');
-    var button=document.getElementById('withdrawBtn');
-
-    if(!owner){showToast('Select Hamid, Raihana, or Mina.','error');return;}
-    if(amount===null||amount<=0){showToast('Enter the amount physically removed.','error');return;}
-
-    button.disabled=true;
-    button.textContent='Recording…';
-
-    loadBook().then(function(bk){
-      var last=bk?bk.last:null;
-      if(!last){
-        showToast('Submit a drawer count before recording a withdrawal.','error');
-        button.disabled=false;
-        button.textContent='Record owner withdrawal';
-        return;
-      }
-
-      var date=businessDateStr();
-      var time=currentTimeStr();
-      var id=makeId('OW');
-      var priorW=Number(bk.wdSinceLast||0);
-      var available=Math.max(0,r2(Number(last.total)-APPROVED_BANK-priorW));
-
-      var sheetPromise=post({
-        action:'ownerWithdrawal',submissionId:id,date:date,time:time,owner:owner,amount:amount,
-        relatedCountId:last.submissionId||'',
-        priorCountTotal:Number(last.total),
-        priorWithdrawals:priorW,
-        availableAboveBank:available
-      });
-
-      var emailPromise=window.emailjs?emailjs.send(EMAILJS_SERVICE_ID,EMAILJS_TEMPLATE_ID,{
-        to_email:OWNER_EMAIL,
-        subject:'Owner Withdrawal $'+amount.toFixed(2)+' — '+owner+' — '+date+' '+time,
-        employee:owner,
-        shift:'Owner Withdrawal',
-        timestamp:date+' '+time,
-        total:'$'+amount.toFixed(2),
-        approved:'$'+APPROVED_BANK.toFixed(2),
-        difference:'OWNER WITHDRAWAL',
-        breakdown:'OWNER WITHDRAWAL LOGGED\nOwner: '+owner+'\nAmount: $'+amount.toFixed(2)+'\nTime: '+date+' '+time+
-          '\nLast drawer count: $'+Number(last.total).toFixed(2)+' by '+last.employee+
-          (priorW>0?'\nEarlier withdrawals since that count: $'+priorW.toFixed(2):'')+
-          '\nWithdrawal ID: '+id+'\n\nIf this was not you, look into it.'
-      }):Promise.resolve();
-
-      return Promise.all([sheetPromise,emailPromise]).then(function(){
-        document.getElementById('withdrawAmount').value='';
-        document.getElementById('withdrawOwner').value='';
-        showToast('Owner withdrawal recorded — '+id,'success');
-        button.disabled=false;
-        button.textContent='Record owner withdrawal';
-        return loadBook();
-      }).then(function(){renderPrev();calc();});
-    }).catch(function(error){
-      console.error(error);
-      showToast('Owner withdrawal submission error: '+(error&&error.message?error.message:'Unknown error'),'error');
-      button.disabled=false;
-      button.textContent='Record owner withdrawal';
-    });
-  }
-
-  function showToast(message,type){
-    var toast=document.getElementById('toast');
-    toast.textContent=message;
-    toast.className='toast '+type;
-  }
-
-  loadBook().then(function(){renderPrev();calc();});
-  renderPrev();
-  calc();
 </script>
+
 </body>
+
 </html>

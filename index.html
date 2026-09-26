@@ -1,2151 +1,2520 @@
-<!doctype html>
-
+<!DOCTYPE html>
 <html lang="en">
-
 <head>
-
+<meta charset="UTF-8">
 <meta
   name="viewport"
-  content="width=device-width, initial-scale=1">
-
-<title>
-Oaks Inventory Tracker
-</title>
+  content="width=device-width, initial-scale=1.0"
+>
+<title>Cash Drawer Count — The Oaks Laundry</title>
 
 <style>
-
-:root{
-  font-family:Arial,sans-serif;
-  color:#18212e;
-  background:#f7f9fc;
-  font-size:22px;
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
 }
 
-*{
-  box-sizing:border-box;
+body {
+  font-family: -apple-system, BlinkMacSystemFont,
+    "Segoe UI", sans-serif;
+  background: #f2f2f0;
+  min-height: 100vh;
+  padding: 1.5rem 1rem 3rem;
 }
 
-html{
-  -webkit-text-size-adjust:100%;
-  text-size-adjust:100%;
+.card {
+  background: #fff;
+  border-radius: 14px;
+  max-width: 480px;
+  margin: 0 auto;
+  overflow: hidden;
+  box-shadow: 0 2px 12px rgba(0,0,0,.08);
 }
 
-body{
-  margin:0;
-  font-size:22px;
-  line-height:1.4;
+.card-header {
+  background: #1a1a2e;
+  padding: 1.25rem 1.5rem;
 }
 
-header{
-  background:#17365d;
-  color:white;
-  padding:18px 16px;
+.card-header h1 {
+  color: #fff;
+  font-size: 20px;
+  font-weight: 600;
 }
 
-header h1{
-  margin:0;
-  font-size:31px;
-  line-height:1.15;
+.card-header p {
+  color: #8888aa;
+  font-size: 13px;
+  margin-top: 3px;
 }
 
-header p{
-  margin:6px 0 0;
-  font-size:18px;
-  opacity:.9;
+.section {
+  padding: 1rem 1.5rem 0;
 }
 
-nav{
-  position:sticky;
-  top:0;
-  z-index:20;
-
-  display:grid;
-  grid-template-columns:1fr 1fr;
-
-  gap:8px;
-  padding:10px;
-
-  background:white;
-
-  border-bottom:
-    1px solid #d9e2f3;
+.section-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: #aaa;
+  margin-bottom: 8px;
 }
 
-button{
-  cursor:pointer;
-
-  border:0;
-  border-radius:14px;
-
-  min-height:62px;
-
-  padding:13px 10px;
-
-  font-size:20px;
-  font-weight:700;
-
-  background:#eaf0f7;
-  color:#17365d;
+.field {
+  margin-bottom: 10px;
 }
 
-button.active,
-button.primary{
-  background:#1f4e78;
-  color:white;
+.field label {
+  display: block;
+  font-size: 13px;
+  color: #555;
+  margin-bottom: 4px;
+  font-weight: 500;
 }
 
-button.smallButton{
-  min-height:48px;
-  font-size:17px;
-  padding:8px 12px;
+.hint {
+  font-size: 11px;
+  color: #999;
+  margin-top: 3px;
 }
 
-main{
-  width:100%;
-  max-width:900px;
-
-  margin:auto;
-  padding:12px;
-}
-
-.page{
-  display:none;
-}
-
-.page.active{
-  display:block;
-}
-
-.card{
-  background:white;
-
-  border:
-    1px solid #d9e2f3;
-
-  border-radius:16px;
-
-  padding:16px 14px;
-
-  margin-bottom:16px;
-}
-
-h2{
-  color:#17365d;
-
-  font-size:28px;
-
-  margin:
-    0 0 14px;
-}
-
-h3{
-  color:#17365d;
-
-  font-size:23px;
-
-  margin:
-    20px 0 10px;
-}
-
-label{
-  display:block;
-
-  margin:
-    16px 0 7px;
-
-  font-size:20px;
-  font-weight:700;
-}
-
-input,
 select,
-textarea{
-  width:100%;
-
-  min-height:64px;
-
-  padding:13px;
-
-  border:
-    2px solid #aebbc9;
-
-  border-radius:13px;
-
-  font-size:21px;
-
-  background:white;
+.money,
+.num,
+textarea {
+  width: 100%;
+  height: 42px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 14px;
+  padding: 0 12px;
+  color: #1a1a2e;
+  background: #fff;
 }
 
-textarea{
-  min-height:100px;
+textarea {
+  height: 70px;
+  padding: 10px 12px;
+  font-family: inherit;
+  resize: vertical;
 }
 
-.row{
-  display:grid;
-  grid-template-columns:1fr;
-  gap:0;
+.row2 {
+  display: flex;
+  gap: 10px;
 }
 
-.message{
-  display:none;
-
-  padding:
-    14px 16px;
-
-  font-size:19px;
+.row2 .field {
+  flex: 1;
 }
 
-.small{
-  color:#596675;
-  font-size:18px;
+.check {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+  color: #1a1a2e;
+  padding: 6px 0;
 }
 
-.metrics{
-  display:grid;
-
-  grid-template-columns:
-    repeat(2,1fr);
-
-  gap:10px;
-
-  margin:
-    12px 0 18px;
+.check input {
+  width: 20px;
+  height: 20px;
 }
 
-.metric{
-  background:#f7f9fc;
-
-  border:
-    1px solid #d9e2f3;
-
-  border-radius:12px;
-
-  padding:12px;
+.prev-box {
+  background: #f4f6fb;
+  border-radius: 8px;
+  padding: 10px 14px;
+  margin: 1rem 1.5rem 0;
+  font-size: 13px;
+  color: #445;
+  line-height: 1.45;
 }
 
-.metric strong{
-  display:block;
-
-  color:#17365d;
-
-  font-size:23px;
+.denom-row {
+  display: flex;
+  align-items: center;
+  padding: 9px 0;
+  border-bottom: 1px solid #f0f0f0;
+  gap: 10px;
 }
 
-.metric span{
-  display:block;
-
-  color:#596675;
-
-  font-size:16px;
+.denom-row:last-child {
+  border-bottom: none;
 }
 
-table,
-thead,
-tbody,
-tr,
-th,
-td{
-  display:block;
+.denom-name {
+  flex: 1;
+  font-size: 15px;
+  color: #1a1a2e;
+  font-weight: 500;
 }
 
-table{
-  width:100%;
+.qty-controls {
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
-thead{
-  display:none;
+.qty-controls button {
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+  background: #f7f7f7;
+  font-size: 18px;
+  cursor: pointer;
 }
 
-tbody{
-  display:grid;
-  gap:12px;
+.qty-controls input {
+  width: 52px;
+  height: 30px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  text-align: center;
+  font-size: 14px;
 }
 
-tr{
-  background:white;
-
-  border:
-    2px solid #d9e2f3;
-
-  border-radius:14px;
-
-  padding:
-    10px 13px;
+.denom-sub {
+  min-width: 60px;
+  text-align: right;
+  font-size: 13px;
+  color: #888;
 }
 
-td{
-  display:grid;
-
-  grid-template-columns:
-    120px minmax(0,1fr);
-
-  gap:10px;
-
-  padding:
-    9px 0;
-
-  border-bottom:
-    1px solid #e8edf4;
-
-  font-size:18px;
-
-  overflow-wrap:anywhere;
+.total-card {
+  background: #f7f7f5;
+  border-radius: 10px;
+  padding: 1rem 1.25rem;
+  margin: 1.25rem 1.5rem .5rem;
 }
 
-td:last-child{
-  border-bottom:0;
+.total-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
-td::before{
-  content:
-    attr(data-label);
-
-  color:#596675;
-
-  font-weight:700;
+.total-label {
+  font-size: 12px;
+  color: #888;
+  text-transform: uppercase;
+  letter-spacing: .06em;
 }
 
-.itemName{
-  font-size:22px;
-  font-weight:700;
-  color:#17365d;
+.total-amount {
+  font-size: 30px;
+  font-weight: 700;
+  color: #1a1a2e;
 }
 
-.flag{
-  font-weight:700;
+.status {
+  font-size: 13px;
+  margin-top: 4px;
+  font-weight: 500;
 }
 
-.good{
-  color:#227447;
+.status.ok,
+.expected.ok {
+  color: #2d8a4e;
 }
 
-.watch{
-  color:#a15c00;
+.status.low,
+.expected.low {
+  color: #c0392b;
 }
 
-.bad{
-  color:#b42323;
+.expected {
+  font-size: 13px;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid #e6e6e2;
+  color: #555;
 }
 
-.empty{
-  display:block;
-  color:#596675;
+.owner-alert,
+.low-alert,
+.issue-alert {
+  border-radius: 8px;
+  padding: 10px 14px;
+  margin: .5rem 1.5rem;
+  font-size: 13px;
+  font-weight: 600;
+  display: none;
 }
 
-.hide{
-  display:none !important;
+.owner-alert {
+  background: #fff7e6;
+  color: #9a5b00;
 }
 
-@media(min-width:760px){
-
-  :root,
-  body{
-    font-size:18px;
-  }
-
-  nav{
-    grid-template-columns:
-      repeat(5,1fr);
-  }
-
-  .row{
-    grid-template-columns:
-      repeat(2,minmax(0,1fr));
-
-    gap:12px;
-  }
-
-  .metrics{
-    grid-template-columns:
-      repeat(4,1fr);
-  }
-
-  table{
-    display:table;
-    border-collapse:collapse;
-  }
-
-  thead{
-    display:table-header-group;
-  }
-
-  tbody{
-    display:table-row-group;
-  }
-
-  tr{
-    display:table-row;
-    padding:0;
-    border:0;
-  }
-
-  th,
-  td{
-    display:table-cell;
-
-    padding:9px;
-
-    border-bottom:
-      1px solid #e8edf4;
-
-    font-size:15px;
-  }
-
-  th{
-    background:#1f4e78;
-    color:white;
-    text-align:left;
-  }
-
-  td::before{
-    display:none;
-  }
-
-  .itemName{
-    font-size:15px;
-  }
-
+.low-alert,
+.issue-alert {
+  background: #fdf0f0;
+  color: #c0392b;
 }
 
+.withdraw-box {
+  border-top: 1px solid #ebebeb;
+  margin-top: 1rem;
+  padding-bottom: 1rem;
+}
+
+.submit-wrap {
+  padding: .75rem 1.5rem 1.5rem;
+}
+
+.submit-btn {
+  width: 100%;
+  padding: 13px;
+  border: none;
+  border-radius: 10px;
+  background: #1a1a2e;
+  color: #fff;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.submit-btn.secondary {
+  background: #fff;
+  color: #1a1a2e;
+  border: 1.5px solid #1a1a2e;
+}
+
+.submit-btn:disabled {
+  background: #aaa;
+  color: #fff;
+  border-color: #aaa;
+  cursor: not-allowed;
+}
+
+.toast {
+  display: none;
+  margin: 0 1.5rem 1.5rem;
+  padding: 12px 14px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.toast.success {
+  background: #eafaf1;
+  color: #1e7e45;
+  display: block;
+}
+
+.toast.error {
+  background: #fdf0f0;
+  color: #c0392b;
+  display: block;
+}
 </style>
-
 </head>
 
-
 <body>
-
-
-<header>
-
-<h1>
-Oaks Inventory Tracker
-</h1>
-
-<p>
-Fluff & Fold • Snack Vending • Laundry Vending
-</p>
-
-</header>
-
-
-<nav>
-
-<button
-  class="tab active"
-  data-page="fluff">
-
-Fluff & Fold
-
-</button>
-
-
-<button
-  class="tab"
-  data-page="snacks">
-
-Snack Vending
-
-</button>
-
-
-<button
-  class="tab"
-  data-page="laundry">
-
-Laundry Vending
-
-</button>
-
-
-<button
-  class="tab"
-  data-page="tracker">
-
-Tracker
-
-</button>
-
-
-<button
-  class="tab"
-  data-page="prices">
-
-Price Changes
-
-</button>
-
-</nav>
-
-
-<div
-  id="message"
-  class="message"
-  role="status">
-</div>
-
-
-<main>
-
-
-<!-- =========================
-     FLUFF & FOLD
-========================== -->
-
-<section
-  id="fluff"
-  class="page active">
-
 <div class="card">
+  <div class="card-header">
+    <h1>Cash drawer count</h1>
+    <p id="shiftLabel">The Oaks Laundry</p>
+  </div>
 
-<h2>
-Fluff & Fold
-</h2>
+  <div class="prev-box" id="prevBox">
+    Loading last count…
+  </div>
 
-<p class="small">
+  <div class="section">
+    <div class="section-label">Who</div>
 
-Counter retail inventory.
-Cleantie movement, supplier cost,
-retail pricing and physical stock
-all stay separate from vending.
+    <div class="field">
+      <label for="emp">Counting employee</label>
+      <select id="emp"></select>
+    </div>
 
-</p>
+    <div class="field">
+      <label for="takingOver">
+        Taking over the drawer
+      </label>
+      <select
+        id="takingOver"
+        onchange="calculateDrawer()"
+      ></select>
+    </div>
 
-<div
-  id="fluffMetrics"
-  class="metrics">
+    <label class="check" id="agreeWrap">
+      <input
+        type="checkbox"
+        id="agreed"
+        onchange="calculateDrawer()"
+      >
+      Next person watched this count and agrees
+    </label>
+  </div>
+
+  <div class="section">
+    <div class="section-label">Current count</div>
+
+    <div class="row2">
+      <div class="field">
+        <label for="sales">
+          Cleantie cash sales today
+        </label>
+
+        <input
+          class="money"
+          id="sales"
+          type="number"
+          inputmode="decimal"
+          min="0"
+          step="0.01"
+          placeholder="0.00"
+          oninput="calculateDrawer()"
+        >
+
+        <div class="hint">
+          Enter the day's running cash-sales total,
+          not only the current shift. Leave blank for
+          the first count of the business day.
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="carts">Cart count</label>
+
+        <input
+          class="num"
+          id="carts"
+          type="number"
+          inputmode="numeric"
+          min="0"
+          step="1"
+          placeholder="Required"
+          oninput="calculateDrawer()"
+        >
+
+        <div class="hint" id="cartHint">
+          Checking the previous cart count…
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-label">Bills</div>
+    <div id="bills"></div>
+  </div>
+
+  <div class="section">
+    <div class="section-label">Coins</div>
+    <div id="coins"></div>
+  </div>
+
+  <div class="total-card">
+    <div class="total-top">
+      <div>
+        <div class="total-label">Total</div>
+        <div class="status" id="status">—</div>
+      </div>
+
+      <div class="total-amount" id="total">
+        $0.00
+      </div>
+    </div>
+
+    <div class="expected" id="expected"></div>
+  </div>
+
+  <div class="owner-alert" id="ownerAlert"></div>
+  <div class="issue-alert" id="cartAlert"></div>
+  <div class="low-alert" id="lowAlert"></div>
+  <div class="issue-alert" id="issueAlert"></div>
+
+  <div class="section">
+    <div class="field">
+      <label for="note">
+        Note on any difference
+      </label>
+
+      <textarea
+        id="note"
+        placeholder="Required if the drawer doesn't match. Cash refund? Write 'Refund $___' here and fill out a paper refund slip."
+      ></textarea>
+    </div>
+  </div>
+
+  <div class="submit-wrap">
+    <button
+      class="submit-btn"
+      id="countBtn"
+      onclick="submitCount()"
+    >
+      Submit drawer count
+    </button>
+  </div>
+
+  <div class="section withdraw-box">
+    <div class="section-label">
+      Owner withdrawal
+    </div>
+
+    <div class="row2">
+      <div class="field">
+        <label for="withdrawOwner">Owner</label>
+        <select id="withdrawOwner"></select>
+      </div>
+
+      <div class="field">
+        <label for="withdrawAmount">
+          Amount removed
+        </label>
+
+        <input
+          class="money"
+          id="withdrawAmount"
+          type="number"
+          inputmode="decimal"
+          min="0"
+          step="0.01"
+          placeholder="0.00"
+        >
+      </div>
+    </div>
+
+    <div class="hint" id="withdrawHint">
+      Record this only after an owner physically
+      removes cash.
+    </div>
+
+    <button
+      type="button"
+      class="submit-btn secondary"
+      id="withdrawBtn"
+      onclick="submitWithdrawal()"
+    >
+      Record owner withdrawal
+    </button>
+  </div>
+
+  <div class="toast" id="toast"></div>
 </div>
 
-<label>
-Product
-</label>
-
-<select id="fluffItem">
-</select>
-
-
-<div class="row">
-
-<div>
-
-<label>
-Physical on hand
-</label>
-
-<input
-  id="fluffOnHand"
-  type="number"
-  min="0"
-  step="1">
-
-</div>
-
-
-<div>
-
-<label>
-Reorder point
-</label>
-
-<input
-  id="fluffReorder"
-  type="number"
-  min="0"
-  step="1">
-
-</div>
-
-</div>
-
-
-<button
-  class="primary"
-  style="width:100%;margin-top:18px"
-  id="saveFluff">
-
-Save Fluff & Fold Count
-
-</button>
-
-
-<h3>
-Products
-</h3>
-
-
-<table>
-
-<thead>
-
-<tr>
-
-<th>Product</th>
-<th>Cost</th>
-<th>Sell</th>
-<th>Margin</th>
-<th>Cleantie Units</th>
-<th>Weekly</th>
-<th>On Hand</th>
-<th>Need</th>
-<th>Buy From</th>
-<th>Action</th>
-
-</tr>
-
-</thead>
-
-
-<tbody
-  id="fluffRows">
-</tbody>
-
-</table>
-
-</div>
-
-</section>
-
-
-
-<!-- =========================
-     SNACK VENDING
-========================== -->
-
-<section
-  id="snacks"
-  class="page">
-
-<div class="card">
-
-<h2>
-Snack Vending
-</h2>
-
-<div
-  id="snackMetrics"
-  class="metrics">
-</div>
-
-<h3>
-Count Stock
-</h3>
-
-<label>
-Product
-</label>
-
-<select id="snackItem">
-</select>
-
-<div class="row">
-
-<div>
-
-<label>
-On hand
-</label>
-
-<input
-  id="snackOnHand"
-  type="number"
-  min="0"
-  step="1">
-
-</div>
-
-<div>
-
-<label>
-Target
-</label>
-
-<input
-  id="snackTarget"
-  type="number"
-  min="0"
-  step="1">
-
-</div>
-
-</div>
-
-<button
-  class="primary"
-  style="width:100%;margin-top:18px"
-  id="saveSnack">
-
-Save Snack Count
-
-</button>
-
-
-<h3>
-Buy List
-</h3>
-
-<table>
-
-<thead>
-
-<tr>
-
-<th>Product</th>
-<th>Have</th>
-<th>Target</th>
-<th>Need</th>
-<th>Cases</th>
-<th>Supplier</th>
-<th>Est. Cost</th>
-<th>Status</th>
-
-</tr>
-
-</thead>
-
-<tbody
-  id="snackBuyRows">
-</tbody>
-
-</table>
-
-
-<h3>
-Machine Slots
-</h3>
-
-<table>
-
-<thead>
-
-<tr>
-
-<th>Slot</th>
-<th>Product</th>
-<th>Vend Price</th>
-<th>Cost</th>
-<th>Profit</th>
-<th>Margin</th>
-<th>Full Qty</th>
-
-</tr>
-
-</thead>
-
-<tbody
-  id="snackSlots">
-</tbody>
-
-</table>
-
-</div>
-
-</section>
-
-
-
-<!-- =========================
-     LAUNDRY VENDING
-========================== -->
-
-<section
-  id="laundry"
-  class="page">
-
-<div class="card">
-
-<h2>
-Laundry Vending
-</h2>
-
-<div
-  id="laundryMetrics"
-  class="metrics">
-</div>
-
-<h3>
-Count Stock
-</h3>
-
-<label>
-Product
-</label>
-
-<select id="laundryItem">
-</select>
-
-<div class="row">
-
-<div>
-
-<label>
-On hand
-</label>
-
-<input
-  id="laundryOnHand"
-  type="number"
-  min="0"
-  step="1">
-
-</div>
-
-<div>
-
-<label>
-Target
-</label>
-
-<input
-  id="laundryTarget"
-  type="number"
-  min="0"
-  step="1">
-
-</div>
-
-</div>
-
-<button
-  class="primary"
-  style="width:100%;margin-top:18px"
-  id="saveLaundry">
-
-Save Laundry Count
-
-</button>
-
-
-<h3>
-Buy List
-</h3>
-
-<table>
-
-<thead>
-
-<tr>
-
-<th>Product</th>
-<th>Have</th>
-<th>Target</th>
-<th>Need</th>
-<th>Cases</th>
-<th>Supplier</th>
-<th>Est. Cost</th>
-<th>Status</th>
-
-</tr>
-
-</thead>
-
-<tbody
-  id="laundryBuyRows">
-</tbody>
-
-</table>
-
-
-<h3>
-Machine Slots
-</h3>
-
-<table>
-
-<thead>
-
-<tr>
-
-<th>Slot</th>
-<th>Product</th>
-<th>Vend Price</th>
-<th>Cost</th>
-<th>Profit</th>
-<th>Margin</th>
-<th>Full Qty</th>
-
-</tr>
-
-</thead>
-
-<tbody
-  id="laundrySlots">
-</tbody>
-
-</table>
-
-</div>
-
-</section>
-
-
-
-<!-- =========================
-     TRACKER
-========================== -->
-
-<section
-  id="tracker"
-  class="page">
-
-<div class="card">
-
-<h2>
-Movement Tracker
-</h2>
-
-<p class="small">
-
-Latest Cleantie movement and gross profit view.
-
-</p>
-
-<div
-  id="trackerMetrics"
-  class="metrics">
-</div>
-
-<table>
-
-<thead>
-
-<tr>
-
-<th>Product</th>
-<th>Units</th>
-<th>Sales</th>
-<th>Gross Profit</th>
-<th>Margin</th>
-<th>Weekly Units</th>
-<th>Action</th>
-
-</tr>
-
-</thead>
-
-<tbody
-  id="trackerRows">
-</tbody>
-
-</table>
-
-</div>
-
-</section>
-
-
-
-<!-- =========================
-     PRICE CHANGES
-========================== -->
-
-<section
-  id="prices"
-  class="page">
-
-<div class="card">
-
-<h2>
-Price Change Log
-</h2>
-
-<table>
-
-<thead>
-
-<tr>
-
-<th>Date</th>
-<th>Product</th>
-<th>Old</th>
-<th>New</th>
-<th>Change</th>
-<th>Reason</th>
-<th>Status</th>
-
-</tr>
-
-</thead>
-
-<tbody
-  id="priceRows">
-</tbody>
-
-</table>
-
-</div>
-
-</section>
-
-
-</main>
-
-
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 
 <script>
+var EMAILJS_PUBLIC_KEY = 'ndWWB1hJwPp1a_UvF';
+var EMAILJS_SERVICE_ID = 'service_vt5n8lc';
+var EMAILJS_TEMPLATE_ID = 'template_m2zbjc3';
+var OWNER_EMAIL = 'oaklaundromat@gmail.com';
 
-const $ =
-  id =>
-    document.getElementById(id);
+var APPROVED_BANK = 400;
+var OWNER_WITHDRAWAL_ALERT = 100;
+var TOLERANCE = 1.00;
+var TIME_ZONE = 'America/Los_Angeles';
 
+var GOOGLE_SHEET_URL =
+  'https://script.google.com/macros/s/AKfycbyiauTAC7ayYeNSAGdpIeWB7G_Uc9Z-1dC4Pw0IWxgiz-1BuDa9M7R9hOM5Q60bgvW6/exec';
 
-let state = {
-  flufffold:[],
+var STAFF = [
+  'Cinthia',
+  'Brian',
+  'Ramiro',
+  'Maria',
+  'Juan',
+  'New Hire',
+  'Manager'
+];
 
-  snacks:{
-    slots:[],
-    buying:[]
+var OWNERS = [
+  'Hamid',
+  'Raihana',
+  'Mina'
+];
+
+var BILLS = [
+  {label: '$100 bills', value: 100},
+  {label: '$50 bills', value: 50},
+  {label: '$20 bills', value: 20},
+  {label: '$10 bills', value: 10},
+  {label: '$5 bills', value: 5},
+  {label: '$1 bills', value: 1}
+];
+
+var COINS = [
+  {label: 'Quarters', value: .25},
+  {label: 'Dimes', value: .10},
+  {label: 'Nickels', value: .05},
+  {label: 'Pennies', value: .01}
+];
+
+var LOW_THRESHOLDS = {
+  d_1bills: {
+    min: 25,
+    label: '$1 bills'
   },
-
-  laundry:{
-    slots:[],
-    buying:[]
+  d_5bills: {
+    min: 8,
+    label: '$5 bills'
   },
-
-  tracker:[],
-  priceChanges:[]
+  d_Quarters: {
+    min: 20,
+    label: 'Quarters'
+  },
+  d_Dimes: {
+    min: 20,
+    label: 'Dimes'
+  },
+  d_Nickels: {
+    min: 40,
+    label: 'Nickels'
+  },
+  d_Pennies: {
+    min: 50,
+    label: 'Pennies'
+  }
 };
 
+var connectionStatus = 'loading';
+var ledger = null;
 
-let pending = false;
+emailjs.init(EMAILJS_PUBLIC_KEY);
 
-let messageTimer;
+function fillSelect(id, firstText, choices) {
+  var html =
+    '<option value="">' +
+    firstText +
+    '</option>';
 
+  for (var i = 0; i < choices.length; i++) {
+    html +=
+      '<option>' +
+      choices[i] +
+      '</option>';
+  }
 
-const esc =
-  value =>
-    String(value ?? '')
-      .replace(
-        /[&<>"']/g,
-        c => ({
-          '&':'&amp;',
-          '<':'&lt;',
-          '>':'&gt;',
-          '"':'&quot;',
-          "'":'&#39;'
-        }[c])
-      );
+  document.getElementById(id).innerHTML = html;
+}
 
+fillSelect(
+  'emp',
+  'Select employee',
+  STAFF
+);
 
-function number_(value) {
+fillSelect(
+  'takingOver',
+  'End of day — nobody taking over',
+  STAFF
+);
 
-  const n =
-    Number(
-      String(value ?? '')
-        .replace(
-          /[^0-9.-]/g,
-          ''
-        )
+fillSelect(
+  'withdrawOwner',
+  'Select owner',
+  OWNERS
+);
+
+function denominationId(label) {
+  return 'd_' + label.replace(/\W/g, '');
+}
+
+function buildRows(items, containerId) {
+  var container =
+    document.getElementById(containerId);
+
+  for (var i = 0; i < items.length; i++) {
+    var item = items[i];
+    var id = denominationId(item.label);
+    var row = document.createElement('div');
+
+    row.className = 'denom-row';
+
+    row.innerHTML =
+      '<div class="denom-name">' +
+      item.label +
+      '</div>' +
+      '<div class="qty-controls">' +
+      '<button type="button" onclick="adjustQuantity(\'' +
+      id +
+      '\',-1)">−</button>' +
+      '<input type="number" inputmode="numeric" id="' +
+      id +
+      '" value="0" min="0" data-value="' +
+      item.value +
+      '" oninput="calculateDrawer()">' +
+      '<button type="button" onclick="adjustQuantity(\'' +
+      id +
+      '\',1)">+</button>' +
+      '</div>' +
+      '<div class="denom-sub" id="sub_' +
+      id +
+      '">$0.00</div>';
+
+    container.appendChild(row);
+  }
+}
+
+buildRows(BILLS, 'bills');
+buildRows(COINS, 'coins');
+
+function adjustQuantity(id, change) {
+  var input = document.getElementById(id);
+
+  input.value = Math.max(
+    0,
+    (parseInt(input.value, 10) || 0) + change
+  );
+
+  calculateDrawer();
+}
+
+function roundMoney(number) {
+  return Math.round(number * 100) / 100;
+}
+
+function money(number) {
+  return '$' + Math.abs(number).toFixed(2);
+}
+
+function signedMoney(number) {
+  return (number >= 0 ? '+' : '-') +
+    money(number);
+}
+
+function losAngelesParts() {
+  var parts = new Intl.DateTimeFormat(
+    'en-US',
+    {
+      timeZone: TIME_ZONE,
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: 'numeric',
+      hourCycle: 'h23'
+    }
+  ).formatToParts(new Date());
+
+  var values = {};
+
+  for (var i = 0; i < parts.length; i++) {
+    if (parts[i].type !== 'literal') {
+      values[parts[i].type] = parts[i].value;
+    }
+  }
+
+  return values;
+}
+
+function currentDateString() {
+  var parts = losAngelesParts();
+
+  return parts.month +
+    '/' +
+    parts.day +
+    '/' +
+    parts.year;
+}
+
+function businessDateString() {
+  var parts = losAngelesParts();
+
+  var date = new Date(
+    Date.UTC(
+      Number(parts.year),
+      Number(parts.month) - 1,
+      Number(parts.day)
+    )
+  );
+
+  if (Number(parts.hour) < 3) {
+    date.setUTCDate(
+      date.getUTCDate() - 1
     );
-
-  return Number.isFinite(n)
-    ? n
-    : 0;
-
-}
-
-
-function money(value) {
-
-  if (
-    value === '' ||
-    value === null ||
-    value === undefined
-  ) {
-    return '—';
   }
 
-  const n =
-    number_(value);
-
-  return '$' +
-    n.toFixed(2);
-
+  return String(
+    date.getUTCMonth() + 1
+  ).padStart(2, '0') +
+    '/' +
+    String(
+      date.getUTCDate()
+    ).padStart(2, '0') +
+    '/' +
+    date.getUTCFullYear();
 }
 
+function currentTimeString() {
+  return new Date().toLocaleTimeString(
+    'en-US',
+    {
+      timeZone: TIME_ZONE,
+      hour: '2-digit',
+      minute: '2-digit'
+    }
+  );
+}
 
-function percent(value) {
+function shiftNow() {
+  var hour = Number(
+    losAngelesParts().hour
+  );
 
-  if (
-    value === '' ||
-    value === null ||
-    value === undefined
-  ) {
-    return '—';
+  if (hour >= 3 && hour < 12) {
+    return 'Morning';
   }
 
-  const text =
-    String(value);
+  if (hour >= 12 && hour < 21) {
+    return 'Afternoon';
+  }
+
+  return 'Evening';
+}
+
+document.getElementById('shiftLabel').textContent =
+  'The Oaks Laundry — ' +
+  shiftNow() +
+  ' count';
+
+function numberInput(id) {
+  var value =
+    document.getElementById(id).value;
+
+  if (value === '') {
+    return null;
+  }
+
+  return parseFloat(value) || 0;
+}
+
+function normalizeTime(value) {
+  var text = String(value || '');
 
   if (
-    text.includes('%')
+    /^\d{1,2}:\d{2}\s?(AM|PM)$/i.test(text)
   ) {
     return text;
   }
 
-  let n =
-    number_(value);
+  var date = new Date(text);
 
-  if (Math.abs(n) <= 1) {
-    n *= 100;
-  }
-
-  return n.toFixed(1) + '%';
-
+  return isNaN(date)
+    ? text
+    : date.toLocaleTimeString(
+        'en-US',
+        {
+          hour: 'numeric',
+          minute: '2-digit'
+        }
+      );
 }
 
-
-function optionList(
-  id,
-  items,
-  old
-) {
-
-  $(id).innerHTML =
-    items
-      .map(
-        x =>
-          `<option value="${esc(x)}">${esc(x)}</option>`
-      )
-      .join('');
+function shortDate(value) {
+  var text = String(value || '');
 
   if (
-    items.includes(old)
+    /^\d{1,2}\/\d{1,2}\/\d{4}$/.test(text)
   ) {
-    $(id).value =
-      old;
+    var parts = text.split('/');
+
+    return new Date(
+      Number(parts[2]),
+      Number(parts[0]) - 1,
+      Number(parts[1])
+    ).toLocaleDateString(
+      'en-US',
+      {
+        month: 'short',
+        day: 'numeric'
+      }
+    );
   }
 
+  return text;
 }
 
-
-function message(
-  text,
-  error = false,
-  autoHide = false
-) {
-
-  clearTimeout(
-    messageTimer
-  );
-
-  $('message').style.display =
-    'block';
-
-  $('message').style.background =
-    error
-      ? '#fce4e4'
-      : '#e5f5e4';
-
-  $('message').textContent =
-    text;
-
-  if (autoHide) {
-    messageTimer =
+function loadLedger(timeoutMilliseconds) {
+  var timeout = new Promise(
+    function(resolve) {
       setTimeout(
-        () =>
-          $('message').style.display =
-            'none',
-        4500
+        function() {
+          resolve('TIMEOUT');
+        },
+        timeoutMilliseconds || 8000
       );
-  }
-
-}
-
-
-function call(
-  method,
-  arg,
-  done
-) {
-
-  if (pending) {
-    return;
-  }
-
-  pending = true;
-
-  message(
-    'Saving…'
-  );
-
-  const runner =
-    google.script.run
-
-      .withSuccessHandler(
-        result => {
-
-          pending =
-            false;
-
-          state =
-            result;
-
-          render();
-
-          message(
-            'Saved to Google Sheet.',
-            false,
-            true
-          );
-
-          if (done) {
-            done();
-          }
-
-        }
-      )
-
-      .withFailureHandler(
-        e => {
-
-          pending =
-            false;
-
-          message(
-            e.message ||
-              String(e),
-            true
-          );
-
-        }
-      );
-
-
-  if (arg === undefined) {
-    runner[method]();
-  } else {
-    runner[method](arg);
-  }
-
-}
-
-
-/* ========================================
-   TABS
-======================================== */
-
-document
-  .querySelectorAll('.tab')
-  .forEach(
-    button => {
-
-      button.onclick =
-        () => {
-
-          document
-            .querySelectorAll(
-              '.tab,.page'
-            )
-            .forEach(
-              el =>
-                el.classList.remove(
-                  'active'
-                )
-            );
-
-          button
-            .classList.add(
-              'active'
-            );
-
-          $(
-            button.dataset.page
-          )
-            .classList.add(
-              'active'
-            );
-
-          window.scrollTo(
-            0,
-            0
-          );
-
-        };
-
     }
   );
 
+  var request = fetch(
+    GOOGLE_SHEET_URL +
+    '?t=' +
+    Date.now(),
+    {
+      cache: 'no-store'
+    }
+  )
+    .then(function(response) {
+      return response.json();
+    })
+    .catch(function() {
+      return 'ERROR';
+    });
 
-/* ========================================
-   FLUFF & FOLD
-======================================== */
+  return Promise.race([
+    request,
+    timeout
+  ]).then(function(result) {
+    if (
+      result === 'TIMEOUT' ||
+      result === 'ERROR' ||
+      result === null ||
+      typeof result !== 'object' ||
+      result.success === false
+    ) {
+      connectionStatus = 'error';
+      ledger = null;
+      return null;
+    }
 
-function updateFluffForm() {
+    if (!result.last) {
+      connectionStatus = 'empty';
+      ledger = null;
+      return null;
+    }
 
-  const item =
-    $('fluffItem').value;
+    connectionStatus = 'ok';
 
-  const found =
-    state.flufffold.find(
-      x =>
-        x.item === item
+    result.wdSinceLast = Number(
+      result.last.withdrawalsSinceCount || 0
     );
 
-  $('fluffOnHand').value =
-    found?.onHand ?? '';
+    result.wdSinceTodayOpen =
+      result.todayOpen &&
+      result.todayOpen.submissionId ===
+        result.last.submissionId
+        ? result.wdSinceLast
+        : Number(
+            result.wdSinceTodayOpen || 0
+          );
 
-  $('fluffReorder').value =
-    found?.reorderPoint ?? '';
+    if (result.last) {
+      result.last.time =
+        normalizeTime(result.last.time);
+    }
 
+    if (result.todayOpen) {
+      result.todayOpen.time =
+        normalizeTime(result.todayOpen.time);
+    }
+
+    if (result.prevClose) {
+      result.prevClose.time =
+        normalizeTime(result.prevClose.time);
+    }
+
+    ledger = result;
+
+    return result;
+  });
 }
 
-
-function renderFluff() {
-
-  optionList(
-    'fluffItem',
-
-    state.flufffold.map(
-      x =>
-        x.item
-    ),
-
-    $('fluffItem').value
-  );
-
-
-  updateFluffForm();
-
-
-  const revenue =
-    state.tracker.reduce(
-      (sum,x) =>
-        sum +
-        number_(x.sales),
-      0
-    );
-
-
-  const gp =
-    state.tracker.reduce(
-      (sum,x) =>
-        sum +
-        number_(x.grossProfit),
-      0
-    );
-
-
-  const units =
-    state.tracker.reduce(
-      (sum,x) =>
-        sum +
-        number_(x.units),
-      0
-    );
-
-
-  $('fluffMetrics').innerHTML = `
-
-    <div class="metric">
-      <strong>
-        ${state.flufffold.length}
-      </strong>
-      <span>
-        Products
-      </span>
-    </div>
-
-    <div class="metric">
-      <strong>
-        ${Math.round(units)}
-      </strong>
-      <span>
-        Latest Cleantie units
-      </span>
-    </div>
-
-    <div class="metric">
-      <strong>
-        ${money(revenue)}
-      </strong>
-      <span>
-        Latest sales
-      </span>
-    </div>
-
-    <div class="metric">
-      <strong>
-        ${money(gp)}
-      </strong>
-      <span>
-        Gross profit
-      </span>
-    </div>
-
-  `;
-
-
-  $('fluffRows').innerHTML =
-    state.flufffold.length
-
-      ?
-        state.flufffold
-
-          .map(
-            x => `
-
-              <tr>
-
-                <td
-                  class="itemName"
-                  data-label="Product">
-                  ${esc(x.item)}
-                </td>
-
-                <td data-label="Cost">
-                  ${esc(x.unitCost || '—')}
-                </td>
-
-                <td data-label="Sell">
-                  ${esc(x.sellPrice || '—')}
-                </td>
-
-                <td data-label="Margin">
-                  ${esc(x.margin || '—')}
-                </td>
-
-                <td data-label="Cleantie Units">
-                  ${esc(x.cleantieUnits || '—')}
-                </td>
-
-                <td data-label="Weekly">
-                  ${esc(x.weeklySales || '—')}
-                </td>
-
-                <td data-label="On Hand">
-                  ${esc(x.onHand || 'NEED COUNT')}
-                </td>
-
-                <td data-label="Need">
-                  ${esc(x.needUnits || '—')}
-                </td>
-
-                <td data-label="Buy From">
-                  ${esc(x.vendor || 'UNKNOWN')}
-                </td>
-
-                <td
-                  class="flag"
-                  data-label="Action">
-                  ${esc(x.action || '—')}
-                </td>
-
-              </tr>
-
-            `
-          )
-
-          .join('')
-
-      :
-        `<tr>
-          <td
-            class="empty"
-            data-label="">
-            No Fluff & Fold products found.
-          </td>
-        </tr>`;
-
+function isOpeningCount() {
+  return !ledger || !ledger.todayOpen;
 }
 
+function withdrawalsSinceAnchor() {
+  if (!ledger) {
+    return 0;
+  }
 
-$('fluffItem').onchange =
-  updateFluffForm;
+  return ledger.todayOpen
+    ? Number(
+        ledger.wdSinceTodayOpen || 0
+      )
+    : Number(
+        ledger.wdSinceLast || 0
+      );
+}
 
+function previousCartCount() {
+  if (
+    ledger &&
+    ledger.lastCart &&
+    Number.isInteger(
+      Number(ledger.lastCart.count)
+    )
+  ) {
+    return Number(
+      ledger.lastCart.count
+    );
+  }
 
-$('saveFluff').onclick =
-  () => {
+  return null;
+}
 
-    const form = {
-      item:
-        $('fluffItem').value,
+function currentCartChange() {
+  var raw =
+    document.getElementById('carts').value;
 
-      onHand:
-        $('fluffOnHand').value,
+  var previous =
+    previousCartCount();
 
-      reorderPoint:
-        $('fluffReorder').value
-    };
+  if (
+    raw === '' ||
+    previous === null
+  ) {
+    return null;
+  }
 
+  var current = Number(raw);
+
+  if (
+    !Number.isInteger(current) ||
+    current < 0
+  ) {
+    return null;
+  }
+
+  return {
+    previous: previous,
+    current: current,
+    difference: current - previous
+  };
+}
+
+function renderCarts() {
+  var previous = previousCartCount();
+  var change = currentCartChange();
+
+  var hint =
+    document.getElementById('cartHint');
+
+  if (previous === null) {
+    hint.textContent =
+      'Last cart count unavailable. Tell the owner if you cannot confirm the carts.';
+  } else {
+    hint.textContent =
+      'Last recorded: ' +
+      previous +
+      ' carts (' +
+      ledger.lastCart.employee +
+      ', ' +
+      shortDate(ledger.lastCart.date) +
+      ').';
+  }
+
+  var alert =
+    document.getElementById('cartAlert');
+
+  if (
+    change &&
+    change.difference !== 0
+  ) {
+    alert.textContent =
+      (
+        change.difference < 0
+          ? 'MISSING '
+          : 'EXTRA '
+      ) +
+      Math.abs(change.difference) +
+      ' cart(s) compared with the previous count of ' +
+      previous +
+      '. Recount and explain the difference in the note.';
+
+    alert.style.display = 'block';
+  } else {
+    alert.style.display = 'none';
+  }
+}
+
+function renderPreviousCount() {
+  var box =
+    document.getElementById('prevBox');
+
+  if (!ledger) {
+    box.innerHTML =
+      connectionStatus === 'error'
+        ? '<b style="color:#c0392b">Cannot reach the count records.</b> Do not assume the submission saved unless the app confirms a sheet row.'
+        : 'No previous count is recorded yet. This count will start the log.';
+
+    return;
+  }
+
+  var html = '';
+  var countToday =
+    Number(ledger.countToday || 0);
+
+  html +=
+    '<b>Counts today: ' +
+    countToday +
+    '/3.</b> ' +
+    (
+      countToday >= 2
+        ? 'Minimum reached.'
+        : 'At least ' +
+          (2 - countToday) +
+          ' more required.'
+    ) +
+    '<br>';
+
+  if (countToday >= 3) {
+    html +=
+      '<b style="color:#c0392b">' +
+      'All three counts are already recorded for this business day.' +
+      '</b><br>';
+  }
+
+  if (
+    ledger.prevClose &&
+    isOpeningCount()
+  ) {
+    html +=
+      'Last night\'s close: <b>$' +
+      Number(
+        ledger.prevClose.total
+      ).toFixed(2) +
+      '</b> — ' +
+      ledger.prevClose.employee +
+      ', ' +
+      shortDate(
+        ledger.prevClose.date
+      ) +
+      ' ' +
+      ledger.prevClose.time +
+      '<br>';
+  }
+
+  if (ledger.todayOpen) {
+    html +=
+      'Opened today: <b>$' +
+      Number(
+        ledger.todayOpen.total
+      ).toFixed(2) +
+      '</b> — ' +
+      ledger.todayOpen.employee +
+      ', ' +
+      ledger.todayOpen.time +
+      '<br>';
+  }
+
+  html +=
+    'Last count: <b>$' +
+    Number(
+      ledger.last.total
+    ).toFixed(2) +
+    '</b> — ' +
+    ledger.last.employee +
+    ', ' +
+    ledger.last.shift +
+    ', ' +
+    ledger.last.time;
+
+  var withdrawals =
+    withdrawalsSinceAnchor();
+
+  if (withdrawals > 0) {
+    html +=
+      '<br>Owner withdrawals since' +
+      (
+        ledger.todayOpen
+          ? ' opening'
+          : ' the last count'
+      ) +
+      ': <b>$' +
+      withdrawals.toFixed(2) +
+      '</b>';
+  }
+
+  if (isOpeningCount()) {
+    html +=
+      '<br>First count of the business day.';
+  }
+
+  box.innerHTML = html;
+}
+
+function checkLowDenominations() {
+  var warnings = [];
+  var keys =
+    Object.keys(LOW_THRESHOLDS);
+
+  for (var i = 0; i < keys.length; i++) {
+    var id = keys[i];
+    var input =
+      document.getElementById(id);
+
+    if (!input) {
+      continue;
+    }
+
+    var quantity =
+      parseInt(input.value, 10) || 0;
 
     if (
-      !form.item ||
-      !Number.isInteger(
-        Number(
-          form.onHand
-        )
-      ) ||
-      Number(
-        form.onHand
-      ) < 0 ||
-      !Number.isInteger(
-        Number(
-          form.reorderPoint
-        )
-      ) ||
-      Number(
-        form.reorderPoint
-      ) < 0
+      quantity <
+      LOW_THRESHOLDS[id].min
     ) {
-
-      message(
-        'Enter valid whole-number stock values.',
-        true
+      warnings.push(
+        LOW_THRESHOLDS[id].label +
+        ': ' +
+        quantity +
+        ' (need ' +
+        LOW_THRESHOLDS[id].min +
+        ')'
       );
-
-      return;
     }
+  }
 
+  var alert =
+    document.getElementById('lowAlert');
 
-    call(
-      'saveFluffCount',
-      form
+  var countedPieces = 0;
+  var inputs =
+    document.querySelectorAll(
+      '[data-value]'
     );
 
-  };
-
-
-/* ========================================
-   VENDING
-======================================== */
-
-function updateVendingForm(
-  group
-) {
-
-  const prefix =
-    group === 'snacks'
-      ? 'snack'
-      : 'laundry';
-
-
-  const item =
-    $(
-      prefix + 'Item'
-    ).value;
-
-
-  const found =
-    state[group]
-      .buying
-      .find(
-        x =>
-          x.item === item
-      );
-
-
-  $(
-    prefix + 'OnHand'
-  ).value =
-    found?.onHand ?? '';
-
-
-  $(
-    prefix + 'Target'
-  ).value =
-    found?.target ?? '';
-
-}
-
-
-function renderVending(
-  group
-) {
-
-  const prefix =
-    group === 'snacks'
-      ? 'snack'
-      : 'laundry';
-
-
-  const obj =
-    state[group];
-
-
-  optionList(
-    prefix + 'Item',
-
-    obj.buying.map(
-      x =>
-        x.item
-    ),
-
-    $(
-      prefix + 'Item'
-    ).value
-  );
-
-
-  updateVendingForm(
-    group
-  );
-
-
-  const need =
-    obj.buying.filter(
-      x =>
-        number_(x.needUnits) > 0
-    );
-
-
-  const totalCost =
-    need.reduce(
-      (sum,x) =>
-        sum +
-        number_(x.estimatedCost),
-      0
-    );
-
-
-  $(
-    prefix + 'Metrics'
-  ).innerHTML = `
-
-    <div class="metric">
-      <strong>
-        ${obj.slots.length}
-      </strong>
-      <span>
-        Slots
-      </span>
-    </div>
-
-    <div class="metric">
-      <strong>
-        ${obj.buying.length}
-      </strong>
-      <span>
-        Products
-      </span>
-    </div>
-
-    <div class="metric">
-      <strong>
-        ${need.length}
-      </strong>
-      <span>
-        Need reorder
-      </span>
-    </div>
-
-    <div class="metric">
-      <strong>
-        ${money(totalCost)}
-      </strong>
-      <span>
-        Estimated buy
-      </span>
-    </div>
-
-  `;
-
-
-  $(
-    prefix + 'BuyRows'
-  ).innerHTML =
-
-    obj.buying.length
-
-      ?
-        obj.buying
-
-          .map(
-            x => `
-
-              <tr>
-
-                <td
-                  class="itemName"
-                  data-label="Product">
-
-                  ${esc(x.item)}
-
-                </td>
-
-                <td data-label="Have">
-                  ${esc(x.onHand || 'NEED COUNT')}
-                </td>
-
-                <td data-label="Target">
-                  ${esc(x.target || '—')}
-                </td>
-
-                <td data-label="Need">
-                  ${esc(x.needUnits || '—')}
-                </td>
-
-                <td data-label="Cases">
-                  ${esc(x.casesToBuy || '—')}
-                </td>
-
-                <td data-label="Supplier">
-                  ${esc(x.vendor || 'UNKNOWN')}
-                </td>
-
-                <td data-label="Est. Cost">
-                  ${esc(x.estimatedCost || '—')}
-                </td>
-
-                <td
-                  class="flag"
-                  data-label="Status">
-                  ${esc(x.status || '—')}
-                </td>
-
-              </tr>
-
-            `
-          )
-
-          .join('')
-
-      :
-        `<tr>
-          <td
-            class="empty"
-            data-label="">
-            No buying-plan products found.
-          </td>
-        </tr>`;
-
-
-  $(
-    prefix + 'Slots'
-  ).innerHTML =
-
-    obj.slots.length
-
-      ?
-        obj.slots
-
-          .map(
-            x => `
-
-              <tr>
-
-                <td data-label="Slot">
-                  ${esc(x.slot)}
-                </td>
-
-                <td
-                  class="itemName"
-                  data-label="Product">
-                  ${esc(x.item)}
-                </td>
-
-                <td data-label="Vend">
-                  ${esc(x.vendPrice || '—')}
-                </td>
-
-                <td data-label="Cost">
-                  ${esc(x.unitCost || '—')}
-                </td>
-
-                <td data-label="Profit">
-                  ${esc(x.profit || '—')}
-                </td>
-
-                <td data-label="Margin">
-                  ${esc(x.margin || '—')}
-                </td>
-
-                <td data-label="Full Qty">
-                  ${esc(x.fullQty || '—')}
-                </td>
-
-              </tr>
-
-            `
-          )
-
-          .join('')
-
-      :
-        `<tr>
-          <td
-            class="empty"
-            data-label="">
-            No slot data found.
-          </td>
-        </tr>`;
-
-}
-
-
-$('snackItem').onchange =
-  () =>
-    updateVendingForm(
-      'snacks'
-    );
-
-
-$('laundryItem').onchange =
-  () =>
-    updateVendingForm(
-      'laundry'
-    );
-
-
-$('saveSnack').onclick =
-  () =>
-    saveVending(
-      'snacks'
-    );
-
-
-$('saveLaundry').onclick =
-  () =>
-    saveVending(
-      'laundry'
-    );
-
-
-function saveVending(
-  group
-) {
-
-  const prefix =
-    group === 'snacks'
-      ? 'snack'
-      : 'laundry';
-
-
-  const form = {
-    group,
-
-    item:
-      $(
-        prefix + 'Item'
-      ).value,
-
-    onHand:
-      $(
-        prefix + 'OnHand'
-      ).value,
-
-    target:
-      $(
-        prefix + 'Target'
-      ).value
-  };
-
+  for (
+    var inputIndex = 0;
+    inputIndex < inputs.length;
+    inputIndex++
+  ) {
+    countedPieces +=
+      parseInt(
+        inputs[inputIndex].value,
+        10
+      ) || 0;
+  }
 
   if (
-    !form.item ||
-    !Number.isInteger(
-      Number(
-        form.onHand
-      )
-    ) ||
-    Number(
-      form.onHand
-    ) < 0 ||
-    !Number.isInteger(
-      Number(
-        form.target
-      )
-    ) ||
-    Number(
-      form.target
-    ) < 0
+    warnings.length &&
+    countedPieces > 0
   ) {
+    alert.innerHTML =
+      'Running low on change — get more from the bank:<br>' +
+      warnings.join('<br>');
 
-    message(
-      'Enter valid whole-number stock values.',
-      true
+    alert.style.display = 'block';
+  } else {
+    alert.style.display = 'none';
+  }
+
+  return warnings;
+}
+
+function firstTimeOverWithdrawalLevel(total) {
+  if (!ledger) {
+    return false;
+  }
+
+  var nowOver =
+    total - APPROVED_BANK >=
+    OWNER_WITHDRAWAL_ALERT;
+
+  var previouslyOver =
+    Number(ledger.last.total) -
+    Number(ledger.wdSinceLast || 0) -
+    APPROVED_BANK >=
+    OWNER_WITHDRAWAL_ALERT;
+
+  return nowOver && !previouslyOver;
+}
+
+function evaluateCount(total) {
+  var sales = numberInput('sales');
+
+  var takingOver =
+    document.getElementById(
+      'takingOver'
+    ).value;
+
+  var agreed =
+    document.getElementById(
+      'agreed'
+    ).checked;
+
+  var result = {
+    issues: [],
+    expectedText: '',
+    expectedClass: '',
+    needsNote: false,
+    alertOwner: false,
+    expected: null,
+    difference: null,
+    causes: []
+  };
+
+  if (ledger) {
+    var withdrawals =
+      withdrawalsSinceAnchor();
+
+    if (isOpeningCount()) {
+      var previous =
+        ledger.prevClose ||
+        ledger.last;
+
+      var expectedOpening =
+        roundMoney(
+          Number(previous.total) -
+          withdrawals
+        );
+
+      var overnightDifference =
+        roundMoney(
+          total - expectedOpening
+        );
+
+      result.expected =
+        expectedOpening;
+
+      result.difference =
+        overnightDifference;
+
+      if (
+        Math.abs(
+          overnightDifference
+        ) <= TOLERANCE
+      ) {
+        result.expectedText =
+          'Matches last night\'s close of $' +
+          Number(
+            previous.total
+          ).toFixed(2);
+
+        result.expectedClass = 'ok';
+      } else {
+        result.issues.push(
+          'OVERNIGHT DIFFERENCE ' +
+          signedMoney(
+            overnightDifference
+          )
+        );
+
+        result.needsNote = true;
+        result.alertOwner = true;
+
+        result.expectedText =
+          'Expected $' +
+          expectedOpening.toFixed(2) +
+          ' from last night\'s close — difference ' +
+          signedMoney(
+            overnightDifference
+          );
+
+        result.expectedClass = 'low';
+
+        result.causes.push(
+          overnightDifference < 0
+            ? 'Cash left the drawer overnight, an owner withdrawal was not recorded, or the previous count was high.'
+            : 'There is more cash than the previous close. The previous count may have been low or money was added.'
+        );
+      }
+    } else if (sales === null) {
+      result.expectedText =
+        'Enter today\'s running cash-sales total from Cleantie.';
+    } else {
+      var expectedCurrent =
+        roundMoney(
+          Number(
+            ledger.todayOpen.total
+          ) +
+          sales -
+          withdrawals
+        );
+
+      var currentDifference =
+        roundMoney(
+          total - expectedCurrent
+        );
+
+      result.expected =
+        expectedCurrent;
+
+      result.difference =
+        currentDifference;
+
+      if (
+        Math.abs(
+          currentDifference
+        ) <= TOLERANCE
+      ) {
+        result.expectedText =
+          'Expected $' +
+          expectedCurrent.toFixed(2) +
+          ' — matches';
+
+        result.expectedClass = 'ok';
+      } else {
+        result.issues.push(
+          'DIFFERENCE ' +
+          signedMoney(
+            currentDifference
+          )
+        );
+
+        result.needsNote = true;
+        result.alertOwner = true;
+
+        result.expectedText =
+          'Expected $' +
+          expectedCurrent.toFixed(2) +
+          ' — difference ' +
+          signedMoney(
+            currentDifference
+          );
+
+        result.expectedClass = 'low';
+
+        var previousSales =
+          ledger.last.sales === null ||
+          typeof ledger.last.sales ===
+            'undefined'
+            ? null
+            : Number(
+                ledger.last.sales
+              );
+
+        if (
+          currentDifference > 0 &&
+          previousSales !== null &&
+          Math.abs(
+            currentDifference -
+            previousSales
+          ) <= .02
+        ) {
+          result.causes.push(
+            'The sales figure may be for this shift only. Enter Cleantie\'s running total for the entire day.'
+          );
+        }
+
+        if (
+          Math.abs(
+            currentDifference
+          ) <= 2
+        ) {
+          result.causes.push(
+            'The amount is small enough to be a coin or $1 bill miscount.'
+          );
+        }
+
+        if (currentDifference < 0) {
+          result.causes.push(
+            'Possible cash removed without a record, a cash refund, or an unrecorded owner withdrawal.'
+          );
+        } else {
+          result.causes.push(
+            'Possible extra cash, an understated Cleantie cash-sales total, or a noncash sale recorded as cash.'
+          );
+        }
+      }
+    }
+  }
+
+  if (takingOver && !agreed) {
+    result.issues.push(
+      'NEXT PERSON DID NOT CONFIRM'
+    );
+
+    result.needsNote = true;
+    result.alertOwner = true;
+  }
+
+  var cartChange =
+    currentCartChange();
+
+  if (
+    cartChange &&
+    cartChange.difference !== 0
+  ) {
+    result.issues.push(
+      (
+        cartChange.difference < 0
+          ? 'CART SHORTAGE '
+          : 'CART INCREASE '
+      ) +
+      Math.abs(
+        cartChange.difference
+      ) +
+      ' (' +
+      cartChange.previous +
+      ' to ' +
+      cartChange.current +
+      ')'
+    );
+
+    result.needsNote = true;
+    result.alertOwner = true;
+  }
+
+  return result;
+}
+
+function calculateDrawer() {
+  var total = 0;
+
+  var inputs =
+    document.querySelectorAll(
+      '[data-value]'
+    );
+
+  for (var i = 0; i < inputs.length; i++) {
+    var input = inputs[i];
+
+    var subtotal =
+      (
+        parseInt(
+          input.value,
+          10
+        ) || 0
+      ) *
+      parseFloat(
+        input.dataset.value
+      );
+
+    total += subtotal;
+
+    document.getElementById(
+      'sub_' + input.id
+    ).textContent =
+      '$' + subtotal.toFixed(2);
+  }
+
+  total = roundMoney(total);
+
+  document.getElementById(
+    'total'
+  ).textContent =
+    '$' + total.toFixed(2);
+
+  var bankDifference =
+    roundMoney(
+      total - APPROVED_BANK
+    );
+
+  var status =
+    document.getElementById('status');
+
+  if (total === 0) {
+    status.textContent =
+      'Start counting';
+
+    status.className = 'status';
+  } else if (total < APPROVED_BANK) {
+    status.textContent =
+      money(bankDifference) +
+      ' under the $' +
+      APPROVED_BANK +
+      ' bank';
+
+    status.className =
+      'status low';
+  } else if (bankDifference > 0) {
+    status.textContent =
+      '+' +
+      money(bankDifference) +
+      ' above bank';
+
+    status.className =
+      'status ok';
+  } else {
+    status.textContent =
+      'Balanced — $' +
+      APPROVED_BANK.toFixed(2);
+
+    status.className =
+      'status ok';
+  }
+
+  var ownerAlert =
+    document.getElementById(
+      'ownerAlert'
+    );
+
+  var withdrawalHint =
+    document.getElementById(
+      'withdrawHint'
+    );
+
+  if (
+    bankDifference >=
+    OWNER_WITHDRAWAL_ALERT
+  ) {
+    ownerAlert.innerHTML =
+      'Drawer is <b>$' +
+      bankDifference.toFixed(2) +
+      '</b> above the $' +
+      APPROVED_BANK.toFixed(2) +
+      ' bank — ready for an owner withdrawal.';
+
+    ownerAlert.style.display =
+      'block';
+
+    withdrawalHint.textContent =
+      'Suggested: $' +
+      bankDifference.toFixed(2) +
+      ' returns the drawer to $' +
+      APPROVED_BANK.toFixed(2) +
+      '. Record only after an owner physically removes cash.';
+  } else {
+    ownerAlert.style.display =
+      'none';
+
+    withdrawalHint.textContent =
+      'Record this only after an owner physically removes cash.';
+  }
+
+  document.getElementById(
+    'agreeWrap'
+  ).style.display =
+    document.getElementById(
+      'takingOver'
+    ).value
+      ? 'flex'
+      : 'none';
+
+  renderCarts();
+
+  var evaluation =
+    evaluateCount(total);
+
+  var expected =
+    document.getElementById(
+      'expected'
+    );
+
+  expected.textContent =
+    evaluation.expectedText;
+
+  expected.className =
+    'expected ' +
+    evaluation.expectedClass;
+
+  expected.style.display =
+    evaluation.expectedText
+      ? 'block'
+      : 'none';
+
+  var issueAlert =
+    document.getElementById(
+      'issueAlert'
+    );
+
+  if (evaluation.needsNote) {
+    issueAlert.innerHTML =
+      'Needs a note before submitting:<br>' +
+      evaluation.issues.join('<br>');
+
+    issueAlert.style.display =
+      'block';
+  } else {
+    issueAlert.style.display =
+      'none';
+  }
+
+  checkLowDenominations();
+
+  return {
+    total: total,
+    bankDifference: bankDifference
+  };
+}
+
+function makeSubmissionId(prefix) {
+  var date = new Date();
+
+  function pad(number) {
+    return String(number).padStart(
+      2,
+      '0'
+    );
+  }
+
+  return prefix +
+    '-' +
+    date.getFullYear() +
+    pad(date.getMonth() + 1) +
+    pad(date.getDate()) +
+    '-' +
+    pad(date.getHours()) +
+    pad(date.getMinutes()) +
+    pad(date.getSeconds()) +
+    '-' +
+    Math.random()
+      .toString(36)
+      .slice(2, 6)
+      .toUpperCase();
+}
+
+function postToSheet(data) {
+  return fetch(
+    GOOGLE_SHEET_URL,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type':
+          'text/plain;charset=utf-8'
+      },
+      body: JSON.stringify(data)
+    }
+  )
+    .then(function(response) {
+      if (!response.ok) {
+        throw new Error(
+          'Script returned HTTP ' +
+          response.status
+        );
+      }
+
+      return response.json();
+    })
+    .then(function(result) {
+      if (!result.success) {
+        throw new Error(
+          result.error ||
+          'The script rejected the submission.'
+        );
+      }
+
+      if (
+        result.submissionId !==
+        data.submissionId
+      ) {
+        throw new Error(
+          'The script returned the wrong submission ID.'
+        );
+      }
+
+      return result;
+    });
+}
+
+function stopSubmission(
+  button,
+  message,
+  focusId
+) {
+  showMessage(message, 'error');
+
+  button.disabled = false;
+  button.textContent =
+    'Submit drawer count';
+
+  if (focusId) {
+    document
+      .getElementById(focusId)
+      .focus();
+  }
+}
+
+function submitCount() {
+  var employee =
+    document.getElementById(
+      'emp'
+    ).value;
+
+  if (!employee) {
+    showMessage(
+      'Please select who is counting.',
+      'error'
     );
 
     return;
   }
 
-
-  call(
-    'saveVendingCount',
-    form
-  );
-
-}
-
-
-/* ========================================
-   TRACKER
-======================================== */
-
-function renderTracker() {
-
-  const units =
-    state.tracker.reduce(
-      (sum,x) =>
-        sum +
-        number_(x.units),
-      0
+  var button =
+    document.getElementById(
+      'countBtn'
     );
 
-
-  const revenue =
-    state.tracker.reduce(
-      (sum,x) =>
-        sum +
-        number_(x.sales),
-      0
-    );
-
-
-  const gp =
-    state.tracker.reduce(
-      (sum,x) =>
-        sum +
-        number_(x.grossProfit),
-      0
-    );
-
-
-  const margin =
-    revenue
-      ? gp / revenue
-      : 0;
-
-
-  $('trackerMetrics').innerHTML = `
-
-    <div class="metric">
-      <strong>
-        ${Math.round(units)}
-      </strong>
-      <span>
-        Units sold
-      </span>
-    </div>
-
-    <div class="metric">
-      <strong>
-        ${money(revenue)}
-      </strong>
-      <span>
-        Revenue
-      </span>
-    </div>
-
-    <div class="metric">
-      <strong>
-        ${money(gp)}
-      </strong>
-      <span>
-        Gross profit
-      </span>
-    </div>
-
-    <div class="metric">
-      <strong>
-        ${(margin * 100).toFixed(1)}%
-      </strong>
-      <span>
-        Overall margin
-      </span>
-    </div>
-
-  `;
-
-
-  $('trackerRows').innerHTML =
-
-    state.tracker.length
-
-      ?
-        state.tracker
-
-          .map(
-            x => `
-
-              <tr>
-
-                <td
-                  class="itemName"
-                  data-label="Product">
-                  ${esc(x.item)}
-                </td>
-
-                <td data-label="Units">
-                  ${esc(x.units)}
-                </td>
-
-                <td data-label="Sales">
-                  ${esc(x.sales)}
-                </td>
-
-                <td data-label="Gross Profit">
-                  ${esc(x.grossProfit)}
-                </td>
-
-                <td data-label="Margin">
-                  ${esc(x.margin)}
-                </td>
-
-                <td data-label="Weekly">
-                  ${esc(x.weeklyUnits)}
-                </td>
-
-                <td
-                  class="flag"
-                  data-label="Action">
-                  ${esc(x.action || '—')}
-                </td>
-
-              </tr>
-
-            `
-          )
-
-          .join('')
-
-      :
-        `<tr>
-          <td
-            class="empty"
-            data-label="">
-            No movement data found.
-          </td>
-        </tr>`;
-
-}
-
-
-/* ========================================
-   PRICE CHANGES
-======================================== */
-
-function renderPrices() {
-
-  $('priceRows').innerHTML =
-
-    state.priceChanges.length
-
-      ?
-        state.priceChanges
-
-          .slice()
-          .reverse()
-
-          .map(
-            x => `
-
-              <tr>
-
-                <td data-label="Date">
-                  ${esc(x.date || '—')}
-                </td>
-
-                <td
-                  class="itemName"
-                  data-label="Product">
-                  ${esc(x.item)}
-                </td>
-
-                <td data-label="Old">
-                  ${esc(x.oldPrice)}
-                </td>
-
-                <td data-label="New">
-                  ${esc(x.newPrice)}
-                </td>
-
-                <td data-label="Change">
-                  ${esc(x.change)}
-                </td>
-
-                <td data-label="Reason">
-                  ${esc(x.reason)}
-                </td>
-
-                <td
-                  class="flag"
-                  data-label="Status">
-                  ${esc(x.status)}
-                </td>
-
-              </tr>
-
-            `
-          )
-
-          .join('')
-
-      :
-        `<tr>
-          <td
-            class="empty"
-            data-label="">
-            No price changes found.
-          </td>
-        </tr>`;
-
-}
-
-
-/* ========================================
-   FULL RENDER
-======================================== */
-
-function render() {
-
-  renderFluff();
-
-  renderVending(
-    'snacks'
-  );
-
-  renderVending(
-    'laundry'
-  );
-
-  renderTracker();
-
-  renderPrices();
-
-}
-
-
-/* ========================================
-   INITIAL LOAD
-======================================== */
-
-message(
-  'Loading tracker…'
-);
-
-
-google.script.run
-
-  .withSuccessHandler(
-    data => {
-
-      state =
-        data;
-
-      render();
-
-      $('message').style.display =
-        'none';
-
-    }
-  )
-
-  .withFailureHandler(
-    e => {
-
-      message(
-        e.message ||
-          String(e),
-        true
+  button.disabled = true;
+  button.textContent = 'Checking…';
+
+  var currentSubmissionId = '';
+
+  loadLedger(5000)
+    .then(function() {
+      renderPreviousCount();
+
+      if (
+        ledger &&
+        Number(
+          ledger.countToday
+        ) >= 3
+      ) {
+        stopSubmission(
+          button,
+          'Three counts are already recorded for this business day. Ask the owner before adding another.'
+        );
+
+        return null;
+      }
+
+      var drawer =
+        calculateDrawer();
+
+      var total = drawer.total;
+      var evaluation =
+        evaluateCount(total);
+
+      var sales =
+        numberInput('sales');
+
+      var note =
+        document
+          .getElementById('note')
+          .value
+          .trim();
+
+      if (
+        ledger &&
+        !isOpeningCount() &&
+        sales === null
+      ) {
+        stopSubmission(
+          button,
+          'Enter today\'s running cash-sales total from Cleantie.',
+          'sales'
+        );
+
+        return null;
+      }
+
+      var carts =
+        document.getElementById(
+          'carts'
+        ).value;
+
+      if (
+        carts === '' ||
+        !Number.isInteger(
+          Number(carts)
+        ) ||
+        Number(carts) < 0
+      ) {
+        stopSubmission(
+          button,
+          'Enter the whole number of carts counted.',
+          'carts'
+        );
+
+        return null;
+      }
+
+      if (
+        evaluation.needsNote &&
+        !note
+      ) {
+        stopSubmission(
+          button,
+          'Add a note explaining the difference.',
+          'note'
+        );
+
+        return null;
+      }
+
+      button.textContent =
+        'Submitting…';
+
+      var lowWarnings =
+        checkLowDenominations();
+
+      var date =
+        businessDateString();
+
+      var time =
+        currentTimeString();
+
+      var shift =
+        shiftNow();
+
+      var submissionId =
+        makeSubmissionId('CD');
+
+      currentSubmissionId =
+        submissionId;
+
+      var takingOver =
+        document.getElementById(
+          'takingOver'
+        ).value;
+
+      var agreed =
+        document.getElementById(
+          'agreed'
+        ).checked;
+
+      var withdrawals =
+        withdrawalsSinceAnchor();
+
+      var crossedWithdrawalLevel =
+        firstTimeOverWithdrawalLevel(
+          total
+        );
+
+      var expectedValue =
+        evaluation.expected === null ||
+        typeof evaluation.expected ===
+          'undefined'
+          ? ''
+          : evaluation.expected;
+
+      var differenceValue =
+        evaluation.difference === null ||
+        typeof evaluation.difference ===
+          'undefined'
+          ? ''
+          : evaluation.difference;
+
+      var denominationData = {};
+      var denominationLines = [];
+      var allItems =
+        BILLS.concat(COINS);
+
+      for (
+        var i = 0;
+        i < allItems.length;
+        i++
+      ) {
+        var item = allItems[i];
+
+        var quantity =
+          parseInt(
+            document.getElementById(
+              denominationId(item.label)
+            ).value,
+            10
+          ) || 0;
+
+        denominationData[item.label] =
+          quantity;
+
+        if (quantity > 0) {
+          denominationLines.push(
+            item.label +
+            ' x ' +
+            quantity +
+            ' = $' +
+            (
+              quantity *
+              item.value
+            ).toFixed(2)
+          );
+        }
+      }
+
+      var bankDifference =
+        roundMoney(
+          total - APPROVED_BANK
+        );
+
+      var statusText =
+        total < APPROVED_BANK
+          ? 'SHORT — ' +
+            money(bankDifference)
+          : bankDifference > 0
+            ? 'ABOVE BANK +' +
+              money(bankDifference)
+            : 'BALANCED';
+
+      if (
+        evaluation.issues.length
+      ) {
+        statusText +=
+          ' | ' +
+          evaluation.issues.join(' | ');
+      }
+
+      var sheetPromise =
+        postToSheet({
+          action: 'count',
+          submissionId: submissionId,
+          date: date,
+          time: time,
+          employee: employee,
+          shift: shift,
+          total: total.toFixed(2),
+          status: statusText,
+
+          hundreds:
+            denominationData[
+              '$100 bills'
+            ] || 0,
+
+          fifties:
+            denominationData[
+              '$50 bills'
+            ] || 0,
+
+          twenties:
+            denominationData[
+              '$20 bills'
+            ] || 0,
+
+          tens:
+            denominationData[
+              '$10 bills'
+            ] || 0,
+
+          fives:
+            denominationData[
+              '$5 bills'
+            ] || 0,
+
+          ones:
+            denominationData[
+              '$1 bills'
+            ] || 0,
+
+          quarters:
+            denominationData.Quarters ||
+            0,
+
+          dimes:
+            denominationData.Dimes || 0,
+
+          nickels:
+            denominationData.Nickels ||
+            0,
+
+          pennies:
+            denominationData.Pennies ||
+            0,
+
+          sales:
+            sales === null
+              ? ''
+              : sales,
+
+          expected: expectedValue,
+          difference: differenceValue,
+
+          withdrawalsSinceCount:
+            withdrawals,
+
+          carts: carts,
+          takingOver: takingOver,
+
+          agreed:
+            takingOver
+              ? agreed
+                ? 'Yes'
+                : 'No'
+              : '',
+
+          note: note
+        });
+
+      var needsAlert =
+        total < APPROVED_BANK ||
+        lowWarnings.length > 0 ||
+        evaluation.alertOwner ||
+        crossedWithdrawalLevel;
+
+      var emailBody = '';
+
+      if (
+        evaluation.issues.length
+      ) {
+        emailBody +=
+          evaluation.issues.join('\n') +
+          '\n\n';
+      }
+
+      if (ledger) {
+        if (ledger.prevClose) {
+          emailBody +=
+            'Last night close   $' +
+            Number(
+              ledger.prevClose.total
+            ).toFixed(2) +
+            '   ' +
+            ledger.prevClose.employee +
+            ', ' +
+            shortDate(
+              ledger.prevClose.date
+            ) +
+            ' ' +
+            ledger.prevClose.time +
+            '\n';
+        }
+
+        if (ledger.todayOpen) {
+          emailBody +=
+            'Opened today       $' +
+            Number(
+              ledger.todayOpen.total
+            ).toFixed(2) +
+            '   ' +
+            ledger.todayOpen.employee +
+            ', ' +
+            ledger.todayOpen.time +
+            '\n';
+        }
+
+        if (
+          ledger.todayOpen &&
+          ledger.prevClose
+        ) {
+          emailBody +=
+            'Overnight change   ' +
+            signedMoney(
+              roundMoney(
+                Number(
+                  ledger.todayOpen.total
+                ) -
+                Number(
+                  ledger.prevClose.total
+                )
+              )
+            ) +
+            '\n';
+        }
+
+        if (sales !== null) {
+          emailBody +=
+            'Cash sales today  +$' +
+            Number(sales).toFixed(2) +
+            '   (Cleantie running total)\n';
+        }
+
+        if (withdrawals > 0) {
+          emailBody +=
+            'Owner withdrawals  -$' +
+            withdrawals.toFixed(2) +
+            '\n';
+        }
+
+        if (
+          evaluation.expected !== null
+        ) {
+          emailBody +=
+            'Expected now       $' +
+            Number(
+              evaluation.expected
+            ).toFixed(2) +
+            '\n';
+        }
+      }
+
+      emailBody +=
+        'Counted now        $' +
+        total.toFixed(2) +
+        '   ' +
+        employee +
+        ', {SHIFT} ' +
+        time +
+        '\n';
+
+      if (
+        evaluation.difference !== null &&
+        Math.abs(
+          evaluation.difference
+        ) > TOLERANCE
+      ) {
+        emailBody +=
+          'DIFFERENCE         ' +
+          signedMoney(
+            evaluation.difference
+          ) +
+          '\n';
+      }
+
+      if (evaluation.causes.length) {
+        emailBody +=
+          '\nPossible cause:\n- ' +
+          evaluation.causes.join('\n- ') +
+          '\n';
+      }
+
+      if (note) {
+        emailBody +=
+          '\nStaff note: ' +
+          note +
+          '\n';
+      }
+
+      if (takingOver) {
+        emailBody +=
+          'Handed to: ' +
+          takingOver +
+          (
+            agreed
+              ? ' (confirmed)'
+              : ' (DID NOT CONFIRM)'
+          ) +
+          '\n';
+      }
+
+      emailBody +=
+        'Carts counted: ' +
+        carts +
+        (
+          previousCartCount() !== null
+            ? ' (previously ' +
+              previousCartCount() +
+              ')'
+            : ' (previous count unavailable)'
+        ) +
+        '\n';
+
+      if (crossedWithdrawalLevel) {
+        emailBody +=
+          '\nDrawer is $' +
+          bankDifference.toFixed(2) +
+          ' over the bank and is ready for an owner withdrawal.\n';
+      }
+
+      if (lowWarnings.length) {
+        emailBody +=
+          '\nRunning low on change: ' +
+          lowWarnings.join(', ') +
+          '\n';
+      }
+
+      emailBody +=
+        '\nDenominations:\n' +
+        denominationLines.join('\n') +
+        '\n\nID: ' +
+        submissionId;
+
+      var alertLabel =
+        evaluation.issues.length
+          ? evaluation.issues[0]
+              .split(' ')
+              .slice(0, 2)
+              .join(' ')
+          : total < APPROVED_BANK
+            ? 'Drawer Short'
+            : crossedWithdrawalLevel
+              ? 'Drawer $100+ Over Bank'
+              : 'Low Change';
+
+      function sendAlert(savedShift) {
+        if (!needsAlert) {
+          return Promise.resolve();
+        }
+
+        return emailjs.send(
+          EMAILJS_SERVICE_ID,
+          EMAILJS_TEMPLATE_ID,
+          {
+            to_email: OWNER_EMAIL,
+
+            subject:
+              alertLabel +
+              ' — ' +
+              employee +
+              ' — ' +
+              date +
+              ' ' +
+              time,
+
+            employee: employee,
+            shift: savedShift,
+            timestamp:
+              date + ' ' + time,
+
+            total:
+              '$' + total.toFixed(2),
+
+            approved:
+              '$' +
+              APPROVED_BANK.toFixed(2),
+
+            difference: statusText,
+
+            breakdown:
+              emailBody.replace(
+                '{SHIFT}',
+                savedShift
+              )
+          }
+        );
+      }
+
+      return sheetPromise.then(
+        function(result) {
+          var savedShift =
+            result.assignedShift ||
+            shift;
+
+          showMessage(
+            savedShift +
+            ' saved in sheet row ' +
+            result.row +
+            ' — ' +
+            submissionId,
+            'success'
+          );
+
+          button.textContent = 'Saved';
+
+          return sendAlert(savedShift)
+            .catch(function(error) {
+              console.error(
+                'Alert email failed',
+                error
+              );
+
+              showMessage(
+                'Count saved in sheet row ' +
+                result.row +
+                '. The alert email failed.',
+                'success'
+              );
+            });
+        }
+      );
+    })
+    .catch(function(error) {
+      console.error(error);
+
+      showMessage(
+        'Count NOT saved: ' +
+        (
+          error && error.message
+            ? error.message
+            : 'Unknown error'
+        ) +
+        '. Keep the count and tell the owner. ID: ' +
+        (
+          currentSubmissionId ||
+          'not assigned'
+        ),
+        'error'
       );
 
-    }
-  )
+      button.disabled = false;
+      button.textContent =
+        'Submit drawer count';
+    });
+}
 
-  .getState();
+function submitWithdrawal() {
+  var owner =
+    document.getElementById(
+      'withdrawOwner'
+    ).value;
 
+  var amount =
+    numberInput('withdrawAmount');
 
+  var button =
+    document.getElementById(
+      'withdrawBtn'
+    );
+
+  if (!owner) {
+    showMessage(
+      'Select Hamid, Raihana, or Mina.',
+      'error'
+    );
+
+    return;
+  }
+
+  if (
+    amount === null ||
+    amount <= 0
+  ) {
+    showMessage(
+      'Enter the amount physically removed.',
+      'error'
+    );
+
+    return;
+  }
+
+  button.disabled = true;
+  button.textContent = 'Recording…';
+
+  loadLedger(5000)
+    .then(function(currentLedger) {
+      var last = currentLedger
+        ? currentLedger.last
+        : null;
+
+      if (!last) {
+        throw new Error(
+          'Submit a drawer count before recording a withdrawal.'
+        );
+      }
+
+      var date =
+        currentDateString();
+
+      var time =
+        currentTimeString();
+
+      var submissionId =
+        makeSubmissionId('OW');
+
+      var previousWithdrawals =
+        Number(
+          currentLedger.wdSinceLast ||
+          0
+        );
+
+      var available =
+        Math.max(
+          0,
+          roundMoney(
+            Number(last.total) -
+            APPROVED_BANK -
+            previousWithdrawals
+          )
+        );
+
+      return postToSheet({
+        action: 'ownerWithdrawal',
+        submissionId: submissionId,
+        date: date,
+        time: time,
+        owner: owner,
+        amount: amount,
+        relatedCountId:
+          last.submissionId || '',
+        priorCountTotal:
+          Number(last.total),
+        priorWithdrawals:
+          previousWithdrawals,
+        availableAboveBank:
+          available
+      }).then(function(result) {
+        var emailPromise =
+          emailjs.send(
+            EMAILJS_SERVICE_ID,
+            EMAILJS_TEMPLATE_ID,
+            {
+              to_email: OWNER_EMAIL,
+
+              subject:
+                'Owner Withdrawal $' +
+                amount.toFixed(2) +
+                ' — ' +
+                owner +
+                ' — ' +
+                date +
+                ' ' +
+                time,
+
+              employee: owner,
+              shift: 'Owner Withdrawal',
+
+              timestamp:
+                date + ' ' + time,
+
+              total:
+                '$' +
+                amount.toFixed(2),
+
+              approved:
+                '$' +
+                APPROVED_BANK.toFixed(2),
+
+              difference:
+                'OWNER WITHDRAWAL',
+
+              breakdown:
+                'OWNER WITHDRAWAL LOGGED\n' +
+                'Owner: ' +
+                owner +
+                '\nAmount: $' +
+                amount.toFixed(2) +
+                '\nTime: ' +
+                date +
+                ' ' +
+                time +
+                '\nLast drawer count: $' +
+                Number(
+                  last.total
+                ).toFixed(2) +
+                ' by ' +
+                last.employee +
+                (
+                  previousWithdrawals > 0
+                    ? '\nEarlier withdrawals since that count: $' +
+                      previousWithdrawals.toFixed(2)
+                    : ''
+                ) +
+                '\nWithdrawal ID: ' +
+                submissionId
+            }
+          )
+          .catch(function(error) {
+            console.error(
+              'Withdrawal email failed',
+              error
+            );
+          });
+
+        document.getElementById(
+          'withdrawAmount'
+        ).value = '';
+
+        document.getElementById(
+          'withdrawOwner'
+        ).value = '';
+
+        showMessage(
+          'Owner withdrawal saved in sheet row ' +
+          result.row +
+          ' — ' +
+          submissionId,
+          'success'
+        );
+
+        button.disabled = false;
+        button.textContent =
+          'Record owner withdrawal';
+
+        return emailPromise.then(
+          function() {
+            return loadLedger();
+          }
+        );
+      });
+    })
+    .then(function() {
+      renderPreviousCount();
+      calculateDrawer();
+    })
+    .catch(function(error) {
+      console.error(error);
+
+      showMessage(
+        'Owner withdrawal NOT saved: ' +
+        (
+          error && error.message
+            ? error.message
+            : 'Unknown error'
+        ),
+        'error'
+      );
+
+      button.disabled = false;
+      button.textContent =
+        'Record owner withdrawal';
+    });
+}
+
+function showMessage(message, type) {
+  var toast =
+    document.getElementById('toast');
+
+  toast.textContent = message;
+  toast.className =
+    'toast ' + type;
+}
+
+loadLedger()
+  .then(function() {
+    renderPreviousCount();
+    calculateDrawer();
+  });
+
+calculateDrawer();
 </script>
-
 </body>
-
 </html>

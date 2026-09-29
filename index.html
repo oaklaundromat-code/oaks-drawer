@@ -174,14 +174,9 @@ textarea{min-height:70px;resize:vertical}
   <div id="toast" class="notice" role="status" aria-live="polite"></div>
 </main>
 
-<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 <script>
 "use strict";
 
-const EMAILJS_PUBLIC_KEY='ndWWB1hJwPp1a_UvF';
-const EMAILJS_SERVICE_ID='service_vt5n8lc';
-const EMAILJS_TEMPLATE_ID='template_m2zbjc3';
-const OWNER_EMAIL='oaklaundromat@gmail.com';
 const GOOGLE_SHEET_URL='https://script.google.com/macros/s/AKfycbyiauTAC7ayYeNSAGdpIeWB7G_Uc9Z-1dC4Pw0IWxgiz-1BuDa9M7R9hOM5Q60bgvW6/exec';
 
 const APPROVED_BANK=400;
@@ -228,8 +223,6 @@ let pendingCount=null;
 let pendingWithdrawal=null;
 
 const $=id=>document.getElementById(id);
-
-if(window.emailjs) emailjs.init(EMAILJS_PUBLIC_KEY);
 
 function fillSelect(id,first,items){
   const s=$(id);
@@ -393,7 +386,7 @@ function shortDate(s){
     :String(s||'');
 }
 
-async function loadBook(ms=8000){
+async function loadBook(ms=45000){
   const controller=new AbortController();
   const timer=setTimeout(()=>controller.abort(),ms);
   try{
@@ -447,10 +440,7 @@ function isOpening(){
     (connStatus==='ok'&&!book.todayOpen);
 }
 function withdrawals(){
-  return !book?0:
-    book.todayOpen
-      ?Number(book.wdSinceTodayOpen||0)
-      :Number(book.wdSinceLast||0);
+  return !book?0:Number(book.wdSinceLast||0);
 }
 
 function countOptions(){
@@ -469,6 +459,8 @@ function countOptions(){
     s.add(new Option('Closing — no handoff','closing'));
   }else if(isOpening()){
     s.add(new Option('Opening count','opening'));
+  }else if(book.countToday>=4 || book.last?.countType==='closing'){
+    s.add(new Option('This business day is closed',''));
   }else{
     s.add(new Option('Choose count type',''));
     s.add(new Option(
@@ -483,6 +475,10 @@ function countOptions(){
     s.value='opening';
 
   updateType();
+  if(book?.currentHolder){
+    $('outgoing').value=book.currentHolder;
+    updateType();
+  }
 }
 
 function updateType(){
@@ -549,7 +545,7 @@ function renderPrev(){
   if(withdrawals()>0){
     parts.push(
       'Owner withdrawals since '+
-      (book.todayOpen?'opening':'last count')+
+      'last count'+
       ': '+usd(withdrawals())
     );
   }
@@ -604,14 +600,24 @@ function expectedFor(total){
 
   if(type==='opening'){
     const anchor=book.prevClose||book.last;
-    r.value=round(
-      Number(anchor.total)-withdrawals()
-    );
+    let lateSales=0;
+    if(anchor.countType!=='closing'){
+      const final=book.priorDayFinalSales;
+      if(final==null || anchor.sales==null){
+        r.text='Prior day had no closing count. Owner must enter its final Cleantie cash sales in DailySales to reconcile this opening.';
+        r.kind='warn';
+        return r;
+      }
+      lateSales=Number(final)-Number(anchor.sales);
+      if(lateSales<0){r.text='Prior-day final sales are below the last running sales total.';r.kind='warn';return r}
+    }
+    r.value=round(Number(anchor.total)+lateSales-withdrawals());
   }else if(sales!==null){
-    r.value=round(
-      Number(book.todayOpen.total)+
-      sales/100-withdrawals()
-    );
+    const prior=book.last;
+    const baseline=prior.sales==null?0:Number(prior.sales);
+    if(sales/100<baseline){r.text='Cleantie total is below the previous count.';r.kind='warn';return r}
+    r.value=round(Number(prior.total)+sales/100-baseline-
+      withdrawals());
   }else{
     r.text='Enter the running cash sales total from Cleantie.';
     return r;
@@ -727,7 +733,7 @@ function calc(){
 
 async function post(data){
   const controller=new AbortController();
-  const timer=setTimeout(()=>controller.abort(),15000);
+  const timer=setTimeout(()=>controller.abort(),60000);
 
   try{
     const response=await fetch(GOOGLE_SHEET_URL,{
@@ -754,59 +760,6 @@ async function post(data){
     return result;
   }finally{
     clearTimeout(timer);
-  }
-}
-
-function alertParams(data,headline,body){
-  return {
-    to_email:OWNER_EMAIL,
-    subject:headline+' — '+data.employee+
-      ' — '+shortDate(data.date)+' '+data.time,
-    employee:data.employee,
-    shift:data.shift,
-    timestamp:data.date+' '+data.time,
-    total:usd(Number(data.total||data.amount)),
-    approved:usd(APPROVED_BANK),
-    difference:data.status||'OWNER WITHDRAWAL',
-    breakdown:body+'\n\nID: '+data.submissionId
-  };
-}
-
-async function finishEmail(key,item){
-  if(!item.email ||
-     item.emailState==='attempted' ||
-     item.emailState==='sent')
-    return false;
-
-  item.emailState='attempted';
-  persist(key,item);
-
-  if(!window.emailjs){
-    show(
-      'toast',
-      'Saved in the sheet, but the email service did not load. Tell the owner.',
-      'warn'
-    );
-    return true;
-  }
-
-  try{
-    await emailjs.send(
-      EMAILJS_SERVICE_ID,
-      EMAILJS_TEMPLATE_ID,
-      item.email
-    );
-    item.emailState='sent';
-    persist(key,item);
-    return false;
-  }catch(e){
-    console.error('Email failed',e);
-    show(
-      'toast',
-      'Saved in the sheet, but alert email failed. Tell the owner.',
-      'warn'
-    );
-    return true;
   }
 }
 
@@ -858,8 +811,7 @@ function validateCount(c){
   if(carts===null)
     return 'Enter the cart count as a nonnegative whole number.';
 
-  if((type!=='opening'&&connStatus!=='error') ||
-     salesText!==''){
+  if(type!=='opening' || salesText!==''){
     if(sales===null)
       return 'Enter a valid Cleantie cash sales amount (at most two decimals).';
   }
@@ -875,119 +827,17 @@ function validateCount(c){
 function createCount(c){
   const type=$('countType').value;
   const counter=$('emp').value;
-  const outgoing=type==='handoff'
-    ?$('outgoing').value:'';
-  const unverified=connStatus==='error';
-  const date=businessDate();
-  const time=timeNow();
-  const id=idFor('CD');
+  const outgoing=type==='handoff' ? $('outgoing').value : '';
   const sales=cents($('sales').value);
-  const diff=round(c.total-APPROVED_BANK);
-  const q=c.q;
-
-  const employee=type==='handoff'
-    ?outgoing:counter;
-
-  let status=unverified
-    ?'UNVERIFIED — could not read previous count'
-    :diff<0
-      ?'SHORT — '+usd(diff)
-      :diff>0
-        ?'ABOVE BANK +'+usd(diff)
-        :'BALANCED';
-
-  if(c.ev.diff!==null &&
-     Math.abs(c.ev.diff)>TOLERANCE)
-    status+=' | DIFFERENCE '+signed(c.ev.diff);
-
   const data={
-    action:'count',
-    submissionId:id,
-    date,
-    time,
-    employee,
-    countedBy:counter,
-    signedOffBy:outgoing,
-    takingOver:type==='handoff'?counter:'',
-    agreed:type==='handoff'?'Yes':'',
-    countType:type,
-    shift:shiftNow(),
-    total:c.total.toFixed(2),
-    status,
-    ...q,
-    sales:sales===null?'':sales/100,
-    expected:c.ev.value??'',
-    difference:c.ev.diff??'',
-    withdrawalsSinceCount:withdrawals(),
-    carts:whole($('carts').value),
-    verified:unverified?'No':'Yes',
-    note:$('note').value.trim()
+    action:'count', submissionId:idFor('CD'), date:businessDate(), time:timeNow(),
+    employee:type==='handoff'?outgoing:counter, countedBy:counter,
+    signedOffBy:outgoing, takingOver:type==='handoff'?counter:'',
+    agreed:type==='handoff'?'Yes':'', countType:type, shift:shiftNow(),
+    total:c.total.toFixed(2), ...c.q, sales:sales===null?'':sales/100,
+    carts:whole($('carts').value), note:$('note').value.trim()
   };
-
-  const previous=book
-    ?Number(book.last.total)-
-      Number(book.wdSinceLast||0)
-    :null;
-
-  const crossed=
-    previous!==null &&
-    diff>=WITHDRAWAL_ALERT &&
-    previous-APPROVED_BANK<WITHDRAWAL_ALERT;
-
-  const lowAtOpen=
-    type==='opening'&&c.warnings.length>0;
-
-  const unbalanced=
-    c.ev.diff!==null &&
-    Math.abs(c.ev.diff)>TOLERANCE;
-
-  const needsEmail=
-    unverified||unbalanced||crossed||lowAtOpen;
-
-  const headline=unverified
-    ?'UNVERIFIED count'
-    :unbalanced
-      ?'Drawer difference '+signed(c.ev.diff)
-      :crossed
-        ?'Pull cash — '+usd(diff)+' over bank'
-        :'Low change';
-
-  const lines=DENOMS
-    .filter(([label,value,key])=>q[key]>0)
-    .map(([label,value,key])=>
-      label+' × '+q[key]+' = '+usd(q[key]*value)
-    );
-
-  const body=[
-    'Count type: '+type,
-    'Counted by: '+counter,
-    'Drawer employee: '+employee,
-    'Total: '+usd(c.total),
-    c.ev.value!==null
-      ?'Expected: '+usd(c.ev.value)+
-        '; difference: '+signed(c.ev.diff)
-      :'Previous count unavailable or first count',
-    'Cleantie sales: '+
-      (sales===null?'not entered':usd(sales/100)),
-    'Withdrawals since anchor: '+usd(withdrawals()),
-    outgoing?'Outgoing employee agreed: '+outgoing:'',
-    data.note?'Note: '+data.note:'',
-    c.warnings.length
-      ?'Low change: '+c.warnings.join('; ')
-      :'',
-    (unbalanced||unverified)
-      ?'Denominations:\n'+lines.join('\n')
-      :''
-  ].filter(Boolean).join('\n');
-
-  return {
-    data,
-    email:needsEmail
-      ?alertParams(data,headline,body)
-      :null,
-    emailState:'not_attempted',
-    state:'posting'
-  };
+  return {data,state:'posting'};
 }
 
 async function submitCount(){
@@ -998,7 +848,7 @@ async function submitCount(){
 
   try{
     if(!pendingCount){
-      await loadBook(5000);
+      await loadBook(45000);
       renderPrev();
       countOptions();
 
@@ -1038,7 +888,9 @@ async function submitCount(){
       'info'
     );
 
-    await finishEmail(COUNT_KEY,item);
+    if(saved.alertError) show('toast',
+      'Count saved, but the server email failed: '+saved.alertError,
+      'warn');
 
     clearPending(COUNT_KEY);
     pendingCount=null;
@@ -1147,31 +999,7 @@ async function submitWithdrawal(){
         availableAboveBank:Math.max(0,available)
       };
 
-      const body=
-        'Owner withdrawal: '+usd(amount)+
-        '\nOwner: '+owner+
-        '\nLast count: '+
-        usd(Number(bk.last.total))+
-        ' by '+bk.last.employee+
-        '\nEarlier withdrawals: '+usd(prior)+
-        '\nIf this was not you, look into it.';
-
-      pendingWithdrawal={
-        data,
-        email:alertParams(
-          {
-            ...data,
-            employee:owner,
-            shift:'Owner withdrawal',
-            total:amount,
-            status:'OWNER WITHDRAWAL'
-          },
-          'Owner withdrawal '+usd(amount),
-          body
-        ),
-        emailState:'not_attempted',
-        state:'posting'
-      };
+      pendingWithdrawal={data,state:'posting'};
 
       if(!persist(
         WITHDRAW_KEY,
@@ -1205,7 +1033,9 @@ async function submitWithdrawal(){
       'info'
     );
 
-    await finishEmail(WITHDRAW_KEY,item);
+    if(saved.alertError) show('toast',
+      'Withdrawal saved, but the server email failed: '+saved.alertError,
+      'warn');
 
     clearPending(WITHDRAW_KEY);
     pendingWithdrawal=null;

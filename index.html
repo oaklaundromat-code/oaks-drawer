@@ -51,10 +51,104 @@ textarea{min-height:70px;resize:vertical}
 .withdraw{border-top:1px solid #ddd;padding-bottom:18px}
 .hidden{display:none!important}
 @media(max-width:390px){
-.row2{display:block}
-.section{padding-left:18px;padding-right:18px}
-.prev,.summary,.notice{margin-left:18px;margin-right:18px}
-.buttons{padding-left:18px;padding-right:18px}
+  .row2{display:block}
+  .section{padding-left:18px;padding-right:18px}
+  .prev,.summary,.notice{margin-left:18px;margin-right:18px}
+  .buttons{padding-left:18px;padding-right:18px}
+}
+</style>
+</head>
+<body>
+<main class="card">
+  <header class="header">
+    <h1>Cash drawer count</h1>
+    <p id="shiftLine">The Oaks Laundry</p>
+  </header>
+
+  <div id="prevBox" class="prev">Loading last count…</div>
+  <div id="pendingCount" class="notice warn" role="status"></div>
+
+  <section class="section">
+    <div class="section-label">Who</div>
+    <div class="field">
+      <label for="countType">Type of count</label>
+      <select id="countType">
+        <option value="">Loading count records…</option>
+      </select>
+    </div>
+    <div class="field">
+      <label for="emp" id="empLabel">Counting the drawer</label>
+      <select id="emp"></select>
+    </div>
+    <div id="outgoingField" class="field hidden">
+      <label for="outgoing">Outgoing employee
+
+Paste this into **GitHub → `oaklaundromat-code/oaks-drawer` → `index.html` → pencil icon**.
+
+1. Select and delete everything currently in `index.html`.
+2. Paste the **entire code below** using its Copy button.
+3. Click **Commit changes** and commit directly to **main**.
+
+This replaces the website file. It uses the Google `Code.gs` supplied earlier, which must be deployed for cash additions to save. The missing quote is fixed, and the complete file passes the syntax check.
+
+```html
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cash Drawer Count — The Oaks Laundry</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;padding:24px 12px 48px;background:#f2f2f0;color:#1a1a2e;font:14px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+.card{max-width:480px;margin:auto;background:#fff;border-radius:14px;overflow:hidden;box-shadow:0 2px 12px #0001}
+.header{background:#1a1a2e;color:white;padding:20px 24px}
+.header h1{font-size:20px;margin:0}
+.header p{color:#aac;margin:4px 0 0}
+.section{padding:16px 24px 0}
+.section-label{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#777;margin-bottom:10px}
+.field{margin-bottom:12px}
+.field label{display:block;font-size:13px;font-weight:600;margin-bottom:5px}
+.hint{font-size:11px;color:#666;margin-top:4px;line-height:1.35}
+select,input,textarea{font:inherit}
+select,.entry,textarea{width:100%;min-height:42px;padding:9px 11px;border:1px solid #ccc;border-radius:8px;background:white;color:#1a1a2e}
+textarea{min-height:70px;resize:vertical}
+.row2{display:flex;gap:10px}
+.row2>.field{flex:1;min-width:0}
+.check{display:flex;align-items:flex-start;gap:10px;line-height:1.35;margin:12px 0}
+.check input{width:22px;height:22px;margin:0;flex:none}
+.prev{margin:16px 24px 0;padding:12px;border-radius:8px;background:#f4f6fb;line-height:1.45}
+.denom{display:flex;align-items:center;gap:9px;padding:8px 0;border-bottom:1px solid #eee}
+.denom-name{flex:1;font-weight:600}
+.controls{display:flex;align-items:center;gap:5px}
+.controls button{width:30px;height:32px;border:1px solid #ccc;border-radius:7px;background:#f7f7f7;font-size:19px}
+.controls input{width:52px;height:32px;text-align:center;border:1px solid #ccc;border-radius:7px}
+.sub{min-width:62px;text-align:right;color:#666}
+.bad{border-color:#c0392b!important;background:#fdf0f0!important}
+.summary{margin:20px 24px 8px;padding:16px;background:#f7f7f5;border-radius:10px}
+.total-row{display:flex;justify-content:space-between;align-items:center}
+.total-row strong{font-size:30px}
+.status{font-size:13px;margin-top:4px}
+.ok{color:#267747}
+.low{color:#bd332b}
+.expected{border-top:1px solid #e6e6e2;margin-top:8px;padding-top:8px;font-size:13px}
+.warn{color:#885400}
+.notice{display:none;margin:8px 24px;padding:11px 13px;border-radius:8px;line-height:1.4}
+.notice.show{display:block}
+.notice.warn{background:#fff6e5}
+.notice.error{background:#fdf0f0;color:#a52620}
+.notice.info{background:#f4f6fb;color:#445}
+.buttons{padding:12px 24px 18px}
+.button{width:100%;padding:13px;border:1px solid #1a1a2e;border-radius:9px;background:#1a1a2e;color:white;font-weight:600;font-size:15px;cursor:pointer}
+.button.secondary{background:white;color:#1a1a2e;margin-top:8px}
+.button:disabled{background:#aaa;border-color:#aaa;color:white;cursor:not-allowed}
+.withdraw{border-top:1px solid #ddd;padding-bottom:18px}
+.hidden{display:none!important}
+@media(max-width:390px){
+  .row2{display:block}
+  .section{padding-left:18px;padding-right:18px}
+  .prev,.summary,.notice{margin-left:18px;margin-right:18px}
+  .buttons{padding-left:18px;padding-right:18px}
 }
 </style>
 </head>
@@ -112,6 +206,7 @@ textarea{min-height:70px;resize:vertical}
     <div class="section-label">Bills</div>
     <div id="bills"></div>
   </section>
+
   <section class="section">
     <div class="section-label">Coins</div>
     <div id="coins"></div>
@@ -151,6 +246,30 @@ textarea{min-height:70px;resize:vertical}
   </div>
 
   <section class="section withdraw">
+    <div class="section-label">Owner adds money to register</div>
+    <div class="row2">
+      <div class="field">
+        <label for="addPerson">Added by</label>
+        <select id="addPerson"></select>
+      </div>
+      <div class="field">
+        <label for="addAmount">Amount physically added</label>
+        <input id="addAmount" class="entry" type="text"
+          inputmode="decimal" placeholder="0.00">
+      </div>
+    </div>
+    <div class="field">
+      <label for="addNote">Details (optional)</label>
+      <input id="addNote" class="entry" type="text"
+        placeholder="Example: $10 in quarters">
+    </div>
+    <p class="hint">Record additional cash supplied to the register. Do not record customer sales here.</p>
+    <button id="addBtn" class="button secondary" type="button">
+      Record owner cash addition
+    </button>
+  </section>
+
+  <section class="section withdraw">
     <div class="section-label">Owner withdrawal</div>
     <div class="row2">
       <div class="field">
@@ -171,30 +290,6 @@ textarea{min-height:70px;resize:vertical}
     </button>
   </section>
 
-  <section class="section withdraw">
-    <div class="section-label">Cash added to register</div>
-    <div class="row2">
-      <div class="field">
-        <label for="addPerson">Added by</label>
-        <select id="addPerson"></select>
-      </div>
-      <div class="field">
-        <label for="addAmount">Amount physically added</label>
-        <input id="addAmount" class="entry" type="text"
-          inputmode="decimal" placeholder="0.00">
-      </div>
-    </div>
-    <div class="field">
-      <label for="addNote">Details (optional)</label>
-      <input id="addNote" class="entry" type="text"
-        placeholder="Example: $10 in quarters">
-    </div>
-    <p class="hint">Record additional cash supplied to the register. Do not record customer sales here.</p>
-    <button id="addBtn" class="button secondary" type="button">
-      Record cash added
-    </button>
-  </section>
-
   <div id="toast" class="notice" role="status" aria-live="polite"></div>
 </main>
 
@@ -211,6 +306,7 @@ const TZ='America/Los_Angeles';
 const STAFF=[
   'Cinthia','Brian','Ramiro','Maria','Juan','New Hire','Manager'
 ];
+
 const OWNERS=['Hamid','Raihana','Mina'];
 
 const BILLS=[
@@ -262,10 +358,7 @@ function fillSelect(id,first,items){
 fillSelect('emp','Select employee',STAFF);
 fillSelect('outgoing','Select outgoing employee',STAFF);
 fillSelect('withdrawOwner','Select owner',OWNERS);
-fillSelect(
-  'addPerson','Select person',
-  [...new Set([...OWNERS,...STAFF])]
-);
+fillSelect('addPerson','Select owner',OWNERS);
 
 function buildRows(items,target){
   items.forEach(([label,value,key])=>{
@@ -336,9 +429,17 @@ function adjust(el,step){
   calc();
 }
 
-function usd(n){return '$'+Math.abs(n).toFixed(2)}
-function signed(n){return(n<0?'-':'+')+usd(n)}
-function round(n){return Math.round(n*100)/100}
+function usd(n){
+  return '$'+Math.abs(n).toFixed(2);
+}
+
+function signed(n){
+  return(n<0?'-':'+')+usd(n);
+}
+
+function round(n){
+  return Math.round(n*100)/100;
+}
 
 function show(id,message,type){
   const el=$(id);
@@ -353,6 +454,7 @@ function hide(id){
 
 function laParts(){
   const v={};
+
   new Intl.DateTimeFormat('en-US',{
     timeZone:TZ,
     year:'numeric',
@@ -363,6 +465,7 @@ function laParts(){
   }).formatToParts(new Date()).forEach(p=>{
     if(p.type!=='literal') v[p.type]=p.value;
   });
+
   return v;
 }
 
@@ -375,7 +478,11 @@ function shiftNow(){
 function businessDate(){
   const p=laParts();
   const d=new Date(Date.UTC(+p.year,+p.month-1,+p.day));
-  if(+p.hour<3) d.setUTCDate(d.getUTCDate()-1);
+
+  if(+p.hour<3){
+    d.setUTCDate(d.getUTCDate()-1);
+  }
+
   return String(d.getUTCMonth()+1).padStart(2,'0')+'/' +
     String(d.getUTCDate()).padStart(2,'0')+'/' +
     d.getUTCFullYear();
@@ -383,7 +490,9 @@ function businessDate(){
 
 function timeNow(){
   return new Date().toLocaleTimeString('en-US',{
-    timeZone:TZ,hour:'2-digit',minute:'2-digit'
+    timeZone:TZ,
+    hour:'2-digit',
+    minute:'2-digit'
   });
 }
 
@@ -396,28 +505,38 @@ function loadPending(key){
   try{
     const raw=localStorage.getItem(key);
     return raw?JSON.parse(raw):null;
-  }catch{return null}
+  }catch{
+    return null;
+  }
 }
 
 function persist(key,item){
   try{
     localStorage.setItem(key,JSON.stringify(item));
     return true;
-  }catch{return false}
+  }catch{
+    return false;
+  }
 }
 
 function clearPending(key){
-  try{localStorage.removeItem(key)}catch{}
+  try{
+    localStorage.removeItem(key);
+  }catch{}
 }
 
 function normTime(s){
   if(/^\d{1,2}:\d{2}\s?(AM|PM)$/i.test(String(s))){
     return String(s);
   }
+
   const d=new Date(s);
+
   return Number.isNaN(+d)?String(s||''):
     d.toLocaleTimeString('en-US',{
-      timeZone:TZ,hour:'numeric',minute:'2-digit'
+      timeZone:TZ,
+      hour:'numeric',
+      minute:'2-digit'
     });
 }
 
@@ -425,9 +544,13 @@ function shortDate(s){
   const m=String(s||'').match(
     /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/
   );
+
   return m
     ?new Date(+m[3],+m[1]-1,+m[2])
-      .toLocaleDateString('en-US',{month:'short',day:'numeric'})
+      .toLocaleDateString('en-US',{
+        month:'short',
+        day:'numeric'
+      })
     :String(s||'');
 }
 
@@ -441,10 +564,13 @@ async function loadBook(ms=45000){
       {cache:'no-store',signal:controller.signal}
     );
 
-    if(!response.ok) throw Error('HTTP '+response.status);
+    if(!response.ok){
+      throw Error('HTTP '+response.status);
+    }
 
     const data=await response.json();
-    if(!data||data.success===false||typeof data!=='object){
+
+    if(!data||data.success===false||typeof data!=='object'){
       throw Error(data?.error||'Bad ledger response');
     }
 
@@ -456,8 +582,13 @@ async function loadBook(ms=45000){
       return null;
     }
 
-    data.addSinceLast=Number(data.last.additionsSinceCount||0);
-    data.wdSinceLast=Number(data.last.withdrawalsSinceCount||0);
+    data.addSinceLast=Number(
+      data.last.additionsSinceCount||0
+    );
+
+    data.wdSinceLast=Number(
+      data.last.withdrawalsSinceCount||0
+    );
 
     data.wdSinceTodayOpen=
       data.todayOpen &&
@@ -470,6 +601,7 @@ async function loadBook(ms=45000){
     if(data.todayOpen){
       data.todayOpen.time=normTime(data.todayOpen.time);
     }
+
     if(data.prevClose){
       data.prevClose.time=normTime(data.prevClose.time);
     }
@@ -483,6 +615,7 @@ async function loadBook(ms=45000){
     book=null;
     ledgerError=String(e?.message||e);
     return null;
+
   }finally{
     clearTimeout(timer);
   }
@@ -510,12 +643,21 @@ function countOptions(){
     s.add(new Option('Loading count records…',''));
 
   }else if(connStatus==='error'){
-    s.add(new Option('Choose count type (ledger unavailable)',''));
-    s.add(new Option('Opening — no handoff','opening'));
+    s.add(new Option(
+      'Choose count type (ledger unavailable)',''
+    ));
+
+    s.add(new Option(
+      'Opening — no handoff','opening'
+    ));
+
     s.add(new Option(
       'Handoff — incoming employee counts','handoff'
     ));
-    s.add(new Option('Closing — no handoff','closing'));
+
+    s.add(new Option(
+      'Closing count — end of night','closing'
+    ));
 
   }else if(isOpening()){
     s.add(new Option('Opening count','opening'));
@@ -524,7 +666,9 @@ function countOptions(){
     book.countToday>=4 ||
     book.last?.countType==='closing'
   ){
-    s.add(new Option('This business day is closed',''));
+    s.add(new Option(
+      'Closing count already recorded',''
+    ));
 
   }else{
     s.add(new Option('Choose count type',''));
@@ -534,7 +678,10 @@ function countOptions(){
         'Handoff — incoming employee counts','handoff'
       ));
     }
-    s.add(new Option('Closing — no handoff','closing'));
+
+    s.add(new Option(
+      'Closing count — end of night','closing'
+    ));
   }
 
   if([...s.options].some(o=>o.value===old)){
@@ -618,17 +765,20 @@ function renderPrev(){
 
   if(withdrawals()>0){
     parts.push(
-      'Owner withdrawals since last count: '+usd(withdrawals())
+      'Owner withdrawals since last count: '+
+      usd(withdrawals())
     );
   }
 
   if(additions()>0){
-    parts.push('Cash added since last count: '+usd(additions()));
+    parts.push(
+      'Cash added since last count: '+usd(additions())
+    );
   }
 
   if(book.last.calculated){
     parts.push(
-      'Last closing balance was calculated; no physical closing count was saved.'
+      'Estimated balance only — the physical closing count is still required.'
     );
   }
 
@@ -670,8 +820,13 @@ function lowWarnings(q){
 function expectedFor(total){
   const type=$('countType').value;
   const sales=cents($('sales').value);
+
   const r={
-    value:null,diff:null,text:'',kind:'',causes:[]
+    value:null,
+    diff:null,
+    text:'',
+    kind:'',
+    causes:[]
   };
 
   if(connStatus==='loading'){
@@ -694,7 +849,10 @@ function expectedFor(total){
     const anchor=book.prevClose||book.last;
     let lateSales=0;
 
-    if(anchor.countType!=='closing'){
+    if(
+      anchor.countType!=='closing' &&
+      anchor.countType!=='recovery'
+    ){
       const final=book.priorDayFinalSales;
 
       if(final==null || anchor.sales==null){
@@ -713,12 +871,14 @@ function expectedFor(total){
     }
 
     r.value=round(
-      Number(anchor.total)+lateSales-withdrawals()+additions()
+      Number(anchor.total)+lateSales-
+      withdrawals()+additions()
     );
 
   }else if(sales!==null){
     const prior=book.last;
-    const baseline=prior.sales==null?0:Number(prior.sales);
+    const baseline=prior.sales==null
+      ?0:Number(prior.sales);
 
     if(sales/100<baseline){
       r.text='Cleantie total is below the previous count.';
@@ -773,6 +933,7 @@ function calc(){
     );
 
     q[key]=n??0;
+
     const subtotal=Math.round(q[key]*value*100);
     centsTotal+=subtotal;
     $('s_'+key).textContent=usd(subtotal/100);
@@ -780,6 +941,7 @@ function calc(){
 
   const total=centsTotal/100;
   const diff=round(total-APPROVED_BANK);
+
   $('total').textContent=usd(total);
 
   $('status').textContent=
@@ -791,9 +953,11 @@ function calc(){
           ?signed(diff)+' above bank'
           :'At the '+usd(APPROVED_BANK)+' bank';
 
-  $('status').className='status '+(diff<0?'low':'ok');
+  $('status').className=
+    'status '+(diff<0?'low':'ok');
 
   const ev=expectedFor(total);
+
   $('expected').textContent=ev.text;
   $('expected').className='expected '+ev.kind;
 
@@ -820,7 +984,11 @@ function calc(){
   $('cartHint').textContent=baseline===null
     ?'':'Last recorded: '+baseline+' carts.';
 
-  if(baseline!==null&&carts!==null&&carts!==baseline){
+  if(
+    baseline!==null &&
+    carts!==null &&
+    carts!==baseline
+  ){
     show(
       'cartAlert',
       'Carts '+(carts<baseline?'down ':'up ')+
@@ -837,14 +1005,18 @@ function calc(){
   if(warnings.length&&total>0){
     show(
       'lowAlert',
-      'Running low on change: '+warnings.join('; ')+'.',
+      'Running low on change: '+
+      warnings.join('; ')+'.',
       'error'
     );
   }else{
     hide('lowAlert');
   }
 
-  if(ev.diff!==null&&Math.abs(ev.diff)>TOLERANCE){
+  if(
+    ev.diff!==null &&
+    Math.abs(ev.diff)>TOLERANCE
+  ){
     show(
       'issueAlert',
       'Count differs from expected by '+
@@ -865,24 +1037,33 @@ async function post(data){
   try{
     const response=await fetch(GOOGLE_SHEET_URL,{
       method:'POST',
-      headers:{'Content-Type':'text/plain;charset=utf-8'},
+      headers:{
+        'Content-Type':'text/plain;charset=utf-8'
+      },
       body:JSON.stringify(data),
       signal:controller.signal
     });
 
-    if(!response.ok) throw Error('HTTP '+response.status);
+    if(!response.ok){
+      throw Error('HTTP '+response.status);
+    }
 
     const result=await response.json();
 
     if(!result.success){
-      throw Error(result.error||'Sheet rejected the submission');
+      throw Error(
+        result.error||'Sheet rejected the submission'
+      );
     }
 
     if(result.submissionId!==data.submissionId){
-      throw Error('Sheet returned the wrong submission ID');
+      throw Error(
+        'Sheet returned the wrong submission ID'
+      );
     }
 
     return result;
+
   }finally{
     clearTimeout(timer);
   }
@@ -894,7 +1075,8 @@ function restoreCount(){
 
   show(
     'pendingCount',
-    'A count with ID '+pendingCount.data.submissionId+
+    'A count with ID '+
+    pendingCount.data.submissionId+
     ' is awaiting confirmation. Press “Retry saved count” '+
     'to send the exact same record. Do not recount or change the drawer.',
     'warn'
@@ -923,22 +1105,34 @@ function validateCount(c){
   if(!type){
     return 'Choose whether this is an opening, handoff, or closing count.';
   }
+
   if(!counter){
     return 'Select the employee counting the drawer.';
   }
-  if(type==='handoff'&&(!outgoing||outgoing===counter)){
+
+  if(
+    type==='handoff' &&
+    (!outgoing||outgoing===counter)
+  ){
     return 'Select a different outgoing employee for the handoff.';
   }
-  if(type==='handoff'&&!$('agreed').checked){
+
+  if(
+    type==='handoff' &&
+    !$('agreed').checked
+  ){
     return 'The outgoing employee must watch and agree before the handoff is saved.';
   }
+
   if(c.invalid.length){
     return 'Use nonnegative whole numbers for every denomination: '+
       c.invalid.join(', ')+'.';
   }
+
   if(c.total<=0){
     return 'Count the drawer before submitting.';
   }
+
   if(carts===null){
     return 'Enter the cart count as a nonnegative whole number.';
   }
@@ -963,7 +1157,9 @@ function validateCount(c){
 function createCount(c){
   const type=$('countType').value;
   const counter=$('emp').value;
-  const outgoing=type==='handoff'?$('outgoing').value:'';
+  const outgoing=type==='handoff'
+    ?$('outgoing').value:'';
+
   const sales=cents($('sales').value);
 
   const data={
@@ -1011,7 +1207,9 @@ async function submitCount(){
       countOptions();
 
       if(connStatus==='error'){
-        throw Error('Ledger unavailable. Reload and try again.');
+        throw Error(
+          'Ledger unavailable. Reload and try again.'
+        );
       }
 
       const c=calc();
@@ -1026,6 +1224,7 @@ async function submitCount(){
 
       if(!persist(COUNT_KEY,pendingCount)){
         pendingCount=null;
+
         show(
           'toast',
           'This browser cannot store a safe retry. Enable storage and try again. Nothing was submitted.',
@@ -1045,16 +1244,18 @@ async function submitCount(){
 
     show(
       'toast',
-      (item.data.verified==='No'?'UNVERIFIED count ':'Count ')+
+      'Count '+
       (saved.duplicate?'already saved':'saved')+
-      ' in row '+saved.row+'. ID: '+item.data.submissionId,
+      ' in row '+saved.row+
+      '. ID: '+item.data.submissionId,
       'info'
     );
 
     if(saved.alertError){
       show(
         'toast',
-        'Count saved, but the server email failed: '+saved.alertError,
+        'Count saved, but the server email failed: '+
+        saved.alertError,
         'warn'
       );
     }
@@ -1062,11 +1263,13 @@ async function submitCount(){
     clearPending(COUNT_KEY);
     pendingCount=null;
     hide('pendingCount');
+
     btn.textContent='Saved';
     $('newCountBtn').classList.remove('hidden');
 
   }catch(e){
     console.error(e);
+
     show(
       'toast',
       'Save not confirmed: '+e.message+
@@ -1074,10 +1277,18 @@ async function submitCount(){
       'the server will return its existing row.',
       'error'
     );
+
     restoreCount();
 
   }finally{
-    btn.disabled=btn.textContent==='Saved';
+    const saved=btn.textContent==='Saved';
+    btn.disabled=saved;
+
+    if(!saved){
+      btn.textContent=pendingCount
+        ?'Retry saved count'
+        :'Submit drawer count';
+    }
   }
 }
 
@@ -1085,14 +1296,19 @@ function restoreWithdrawal(){
   pendingWithdrawal=loadPending(WITHDRAW_KEY);
 
   if(pendingWithdrawal){
-    $('withdrawBtn').textContent='Retry pending withdrawal';
+    $('withdrawBtn').textContent=
+      'Retry pending withdrawal';
+
     $('withdrawAmount').value=
       Number(pendingWithdrawal.data.amount).toFixed(2);
-    $('withdrawOwner').value=pendingWithdrawal.data.owner;
+
+    $('withdrawOwner').value=
+      pendingWithdrawal.data.owner;
 
     show(
       'toast',
-      'Withdrawal ID '+pendingWithdrawal.data.submissionId+
+      'Withdrawal ID '+
+      pendingWithdrawal.data.submissionId+
       ' is awaiting confirmation. Retry it before recording another withdrawal.',
       'warn'
     );
@@ -1118,9 +1334,16 @@ async function submitWithdrawal(){
   try{
     if(!pendingWithdrawal){
       const owner=$('withdrawOwner').value;
-      const amountCents=cents($('withdrawAmount').value);
 
-      if(!owner || amountCents===null || amountCents<=0){
+      const amountCents=cents(
+        $('withdrawAmount').value
+      );
+
+      if(
+        !owner ||
+        amountCents===null ||
+        amountCents<=0
+      ){
         show(
           'toast',
           'Select an owner and enter a positive amount with at most two decimals.',
@@ -1144,9 +1367,12 @@ async function submitWithdrawal(){
       }
 
       const prior=Number(bk.wdSinceLast||0);
+
       const available=round(
-        Number(bk.last.total)-APPROVED_BANK-prior+additions()
+        Number(bk.last.total)-
+        APPROVED_BANK-prior+additions()
       );
+
       const amount=amountCents/100;
 
       const data={
@@ -1166,6 +1392,7 @@ async function submitWithdrawal(){
 
       if(!persist(WITHDRAW_KEY,pendingWithdrawal)){
         pendingWithdrawal=null;
+
         show(
           'toast',
           'This browser cannot store a safe retry. Nothing was submitted.',
@@ -1183,21 +1410,25 @@ async function submitWithdrawal(){
 
     show(
       'toast',
-      'Withdrawal '+(saved.duplicate?'already recorded':'recorded')+
-      ' in row '+saved.row+'. ID: '+item.data.submissionId,
+      'Withdrawal '+
+      (saved.duplicate?'already recorded':'recorded')+
+      ' in row '+saved.row+
+      '. ID: '+item.data.submissionId,
       'info'
     );
 
     if(saved.alertError){
       show(
         'toast',
-        'Withdrawal saved, but the server email failed: '+saved.alertError,
+        'Withdrawal saved, but the server email failed: '+
+        saved.alertError,
         'warn'
       );
     }
 
     clearPending(WITHDRAW_KEY);
     pendingWithdrawal=null;
+
     $('withdrawAmount').value='';
     $('withdrawOwner').value='';
 
@@ -1208,16 +1439,19 @@ async function submitWithdrawal(){
 
   }catch(e){
     console.error(e);
+
     show(
       'toast',
       'Withdrawal save not confirmed: '+e.message+
       '. Retry the same ID before recording another withdrawal.',
       'error'
     );
+
     restoreWithdrawal();
 
   }finally{
     btn.disabled=false;
+
     btn.textContent=pendingWithdrawal
       ?'Retry pending withdrawal'
       :'Record owner withdrawal';
@@ -1229,9 +1463,14 @@ function restoreAddition(){
   if(!pendingAddition) return;
 
   $('addPerson').value=pendingAddition.data.person;
-  $('addAmount').value=Number(pendingAddition.data.amount).toFixed(2);
+
+  $('addAmount').value=
+    Number(pendingAddition.data.amount).toFixed(2);
+
   $('addNote').value=pendingAddition.data.note||'';
-  $('addBtn').textContent='Retry pending cash addition';
+
+  $('addBtn').textContent=
+    'Retry pending cash addition';
 
   show(
     'toast',
@@ -1289,6 +1528,7 @@ async function submitAddition(){
 
       if(!persist(ADD_KEY,pendingAddition)){
         pendingAddition=null;
+
         throw Error(
           'Browser could not store the retry. Nothing was submitted.'
         );
@@ -1296,6 +1536,7 @@ async function submitAddition(){
     }
 
     const saved=await post(pendingAddition.data);
+
     clearPending(ADD_KEY);
     pendingAddition=null;
 
@@ -1305,9 +1546,12 @@ async function submitAddition(){
 
     show(
       'toast',
-      'Cash addition '+(saved.duplicate?'already recorded':'saved')+
+      'Cash addition '+
+      (saved.duplicate?'already recorded':'saved')+
       ' in row '+saved.row+
-      (saved.alertError?' — email failed: '+saved.alertError:''),
+      (saved.alertError
+        ?' — email failed: '+saved.alertError
+        :''),
       'info'
     );
 
@@ -1323,13 +1567,15 @@ async function submitAddition(){
       '. Retry the same entry if pending.',
       'error'
     );
+
     restoreAddition();
 
   }finally{
     btn.disabled=false;
+
     btn.textContent=pendingAddition
       ?'Retry pending cash addition'
-      :'Record cash added';
+      :'Record owner cash addition';
   }
 }
 
@@ -1345,9 +1591,11 @@ async function startAnotherCount(){
   });
 
   $('agreed').checked=false;
+
   $('newCountBtn').classList.add('hidden');
   $('countBtn').disabled=false;
   $('countBtn').textContent='Submit drawer count';
+
   hide('toast');
 
   await loadBook();
@@ -1376,7 +1624,10 @@ loadBook().then(()=>{
   renderPrev();
   countOptions();
   calc();
-  if(pendingCount) setCountLocked(true);
+
+  if(pendingCount){
+    setCountLocked(true);
+  }
 });
 
 calc();
